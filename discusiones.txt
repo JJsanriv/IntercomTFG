@@ -3,97 +3,31 @@
 Esta parte de la memoria es la más importante, ya que aquí se presentan los resultados obtenidos a partir de la implementación de los códigos ya explicados. 
 \vspace{\baselineskip}
 
-Para ello, tendremos que simular condiciones reales de red utilizando la herramienta ``tc''\footnote{Para más informacion sobre el comando, visitar: https://man7.org/linux/man-pages/man8/tc.8.html} de Linux. Se analizará el comportamiento de \textit{InterCom} bajo diferentes condiciones de ancho de banda, retardo y pérdida de paquetes. Finalmente, se extraerán las conclusiones sobre dicho comportamiento del programa, así como, la robustez y limitaciones del sistema.
+Antes de nada, se mostrará una ejecución normal de cada módulo implementado para que se observe el funcionamiento y su salida sin ningun tipo de alteración en cada uno de ellos. 
 \vspace{\baselineskip}
 
-A continuación, se comentan los distintos tipos de pruebas que se van realizar en cada subsección de este punto de la memoria:
-\begin{itemize}
-    \item \textbf{Pruebas de Ancho de Banda Limitado}: Se simulará un ancho de banda limitado para comprobar el rendimiento del sistema bajo condiciones de red restringidas. Se probarán los siguientes anchos de banda:
-    \begin{itemize}
-        \item Ancho de banda muy bajo: 1 Mbps (Prueba de una situación casi irreal).
-        \item Ancho de banda bajo: 10 Mbps (Situación común en redes WiFi).
-        \item Ancho de banda medio (referencia): 50 Mbps o más (Situación común en redes de fibra óptica, suficiente para la correcta ejecución del programa).
-    \end{itemize}
-    \item \textbf{Pruebas de Retardo (Delay)} : Se simula cierta distancia física, mala calidad de red, o saturación del router. Se probarán los siguientes retardos:
-    \begin{itemize}
-        \item Sin retardo: 0 ms (ideal, red local)
-        \item Retardo medio: 100 ms (red común, ADSL, fibra, etc.)
-        \item Retardo alto: 250 ms o más (red muy saturada, mala calidad de red)
-    \end{itemize}
-    \item \textbf{Pruebas de Pérdida de Paquetes}: Se simulará la pérdida de paquetes en la red, lo que puede ocurrir en redes saturadas o de mala calidad. Se probarán los siguientes niveles de pérdida: 
-    \begin{itemize}
-        \item Pérdida baja: 5\% (red local, ideal)
-        \item Perdida alta: 25\% (red común, ADSL, fibra, etc.)
-        \item Pérdida muy alta: 50\% o más (red muy saturada, mala calidad de red)
-    \end{itemize}
-\end{itemize}
-
-\subsection{Resultados}
-Para la realización y configuración de las distintas situaciones de red, se utilizará el comando ``tc'' de Linux como ya se ha mencionado anteriormente. 
-\vspace{\baselineskip}
-
-Antes de nada, habrá que observar si hay alguna regla ya aplicada a la interfaz de red. La interfaz de red dependerá de con quien ejecutemos el programa, si lo ejecutamos en dos instancias de nuestro propio PC, bastará con usar la interfaz \textit{loopback}. En caso de estar ejecutando el programa junto con otro dispositivo de nuestra red, como es el caso de estas pruebas, habrá que mirar que interfaz de red saliente está utilizando el dispositivo. Para ello, se puede usar el comando ``ip addr'' para ver las interfaces de red disponibles y sus respectivas direcciones IP. 
-
-\vspace{\baselineskip}
-Entonces, una vez mirado la interfaz de red, que en mi caso es \textit{enp0s3}, se procederá a aplicar las reglas de red necesarias para simular las condiciones de red deseadas.
-
-\vspace{\baselineskip}
-
-Primero, habrá que mirar que no hay ninguna regla prestablecida en la interfaz de red. Para ello, se ejecutará el siguiente comando:
-\begin{lstlisting}[language=bash]
-sudo tc qdisc show dev enp0s3
-\end{lstlisting}
-Si no hay ninguna regla, el resultado será algo como así:
-\begin{lstlisting}[language=bash, breaklines=true]
-qdisc fq_codel 0: root refcnt 2 limit 10240p flows 1024 quantum 1514 target 5ms interval 100ms memory_limit 32Mb ecn drop_batch 64 
-\end{lstlisting}
-
-En caso de que hubiera ya alguna regla, se eliminaría con el siguiente comando:
-\begin{lstlisting}[language=bash]
-sudo tc qdisc del dev enp0s3 root
-\end{lstlisting}
-
-Ahora, ya se puede aplicar la regla de red deseada. Para ello, se utilizarán los siguientes comandos:
-
-\begin{itemize}
-    \item Para limitar el ancho de banda a X Mbps, donde X es el valor deseado:
-    \begin{lstlisting}[language=bash, breaklines=true]
-    sudo tc qdisc add dev enp0s3 root tbf rate Xmbit burst 1mbit latency 5000ms
-\end{lstlisting}
-    Donde el valor de \textit{burst} es el tamaño del paquete máximo que se puede enviar en un momento dado y el valor de \textit{latency} es el tiempo máximo que se puede esperar para enviar un paquete. En este caso, se ha puesto un valor de 1 Mbit y 5000 ms respectivamente, pero no alterarán el resultado de la prueba.
-    \item Para añadir un retardo de X ms, donde X es el valor deseado:
-    \begin{lstlisting}[language=bash]
-    sudo tc qdisc add dev enp0s3 root netem delay Xms
-\end{lstlisting}
-    \item Para añadir una pérdida de paquetes de X\%, donde X es el valor deseado:
-    \begin{lstlisting}[language=bash]
-    sudo tc qdisc add dev enp0s3 root netem loss X%
-\end{lstlisting}
-\end{itemize}
-
-A continuación, se mostrará un ejemplo normal de ejecución del programa \textit{minimal\_video.py} sin ningun tipo de restrcción de red.
-
-\begin{figure}[htbp]
+Empezaremos por un ejemplo normal de ejecución del moódulo \textit{minimal\_video.py} sin ningun tipo de restrcción de red. \textit{\textbf{*Ver en la siguiente página.}}
+\begin{figure}[p]
+  \centering
+  \begin{subfigure}{\textwidth}
     \centering
-    \begin{subfigure}{0.6\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{images/pruebas/ejecuion_normal1.png}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.6\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{images/pruebas/ejecuion_normal2.png}
-    \end{subfigure}
-    \caption{Ejemplo de ejecución común del programa \textit{minimal\_video.py}.}
-    \label{fig:ejecucion_doble}
+    \includegraphics[width=\textwidth,height=0.6\textheight,keepaspectratio]{images/pruebas/ejecuion_normal1.png}
+  \end{subfigure}
+  \vspace{\baselineskip}
+  \begin{subfigure}{\textwidth}
+    \centering
+    \includegraphics[width=\textwidth,height=0.6\textheight,keepaspectratio]{images/pruebas/ejecuion_normal2.png}
+  \end{subfigure}
+  \caption{Ejemplo de ejecución común del módulo \textit{minimal\_video.py}.}
+  \label{fig:ejecucion_doble}
 \end{figure}
 \vspace{\baselineskip}
 \newpage
 
-\textbf{La salida explicada es la siguiente:}
+\textbf{· La salida explicada es la siguiente:}
 \vspace{\baselineskip}
 
-Tenemos en primer lugar la inicialización de la librería \textit{pygame} y el mensaje de bienvenida de la comunidad. A continuación, se muestra el mensaje de inicio del programa en modo Verbose, que es el modo que se ha elegido para esta prueba. En este modo, se muestran estadísticas de la red y del programa en tiempo real.
+Tenemos en primer lugar la inicialización de la librería \textit{pygame} y el mensaje de bienvenida de la comunidad. A continuación, se muestra el mensaje de inicio del programa en modo verbose, que es el modo que se ha elegido para esta prueba. En este modo, se muestran estadísticas de la red y del programa en tiempo real.
 \begin{lstlisting}[language=bash,basicstyle=\ttfamily\scriptsize]
 pygame 2.6.0 (SDL 2.28.4, Python 3.12.3)
 Hello from the pygame community. https://www.pygame.org/contribute.html
@@ -102,9 +36,11 @@ Iniciando en modo Verbose...
 \end{lstlisting}
 
 Seguidamente, se pueden observar un mensaje de que se ha inicializado el video ya que se activó el flag ``--show\_video'' y se ha intentado inicializar la cámara con el índice 1. En este caso, se ha utilizado la cámara del portátil, que es la cámara 0. Si no se encuentra la cámara, se intentará inicializar la cámara con el índice 1. Luego, se ejecuta \textit{minimal.py} que es el módulo base que ejecuta el audio el cual proporciona una descripción de distintos parámetros como el chunk\_time, el seconds\_per\_cycle, el chunks\_per\_cycle y el frames\_per\_cycle. Finalmente se indica que se ha iniciado el modo verbose.
+
 \begin{lstlisting}[language=bash,basicstyle=\ttfamily\scriptsize]
 Flag --show_video detectado. Intentando inicializar la camara con indice 1...
-(INFO) minimal: A minimal InterCom (no compression, no quantization, no transform, ... only provides a bidirectional (full-duplex) transmission of raw (playable) chunks. 
+(INFO) minimal: A minimal InterCom (no compression, no quantization, no transform, 
+... only provides a bidirectional (full-duplex) transmission of raw (playable) chunks. 
 (INFO) minimal: chunk_time = 0.023219954648526078 seconds
 (INFO) minimal: seconds_per_cycle = 1
 (INFO) minimal: chunks_per_cycle = 43.06640625
@@ -118,7 +54,13 @@ A continuación, se muestra los parametros inicializados del programa, así como
 \begin{lstlisting}[language=bash,basicstyle=\ttfamily\scriptsize]
 InterCom parameters:
 
-Namespace(input_device=None, output_device=None, list_devices=False, frames_per_second=44100, frames_per_chunk=1024, listening_port=4444, destination_address='localhost', destination_port=4444, filename=None, reading_time=None, number_of_channels=2, show_stats=True, show_samples=False, show_spectrum=False, video_payload_size=1400, width=320, height=240, fps=30, show_video=True, listening_video_port=4445, destination_video_port=4445, camera_index=1)
+Namespace(input_device=None, output_device=None, list_devices=False, 
+frames_per_second=44100, frames_per_chunk=1024, listening_port=4444, 
+destination_address='localhost', destination_port=4444, filename=None, 
+reading_time=None, number_of_channels=2, show_stats=True, 
+show_samples=False, show_spectrum=False, video_payload_size=1400, 
+width=320, height=240, fps=30, show_video=True, listening_video_port=4445, 
+destination_video_port=4445, camera_index=1)
 
 Using device:
 
@@ -141,7 +83,7 @@ Using device:
 
 Continuamos con las estadísticas de la red en cuanto al vídeo y el audio se refiere. En este caso, se muestra el número de mensajes enviados y recibidos, así como, el ancho de banda utilizado en kbps. También se muestra el uso de CPU del programa y del sistema. En este caso, el uso de CPU del programa es bastante alto, ya que se está utilizando la cámara y el procesamiento de vídeo en tiempo real. 
 \begin{lstlisting}[language=bash,basicstyle=\ttfamily\scriptsize]
-           | AUDIO (msg)   | VIDEO (msg)   | AUDIO (kbps)   | VIDEO (kbps)   |    CPU (%)
+          | AUDIO (msg)   | VIDEO (msg)   | AUDIO (kbps)   | VIDEO (kbps)   |    CPU (%)
  Cycle    | Sent   Recv   | Sent   Recv   | Sent   Recv    | Sent   Recv    | Program System
 ============================================================================================
    1      |   0      0    |   0     0     |   0      0     |   0      0     |  0      0
@@ -218,9 +160,9 @@ A continuacion, un ejemplo de ejecución común de \textit{minimal\_video\_fps.p
 \end{center}
 \vspace{\baselineskip}
 
-\begin{adjustbox}{max width=\textwidth}
 \begin{lstlisting}[language=bash,basicstyle=\ttfamily\scriptsize]
-(TM) jj@jj-XubuntuPC:~/TFG-Intercom-Video/src$ python minimal_video_fps.py --show_video --show_stats --camera_index 1 -z 12
+(TM) jj@jj-XubuntuPC:~/TFG-Intercom-Video/src$ python minimal_video_fps.py --show_video 
+--show_stats --camera_index 1 -z 12
 
          |  AUDIO (msg)  |  VIDEO (msg)  |  AUDIO (kbps)   |  VIDEO (kbps)   |     CPU (%) 
    Cycle |  Sent  Recv   |  Sent  Recv   |   Sent   Recv   |   Sent   Recv   | Program System
@@ -294,7 +236,6 @@ FPS real promedio: 10.1
 Eficiencia FPS:    84.3%
 ==========================
 \end{lstlisting}
-\end{adjustbox}
 
 \newpage
 
@@ -400,6 +341,81 @@ QObject::killTimer: Timers cannot be stopped from another thread
 QObject::~QObject: Timers cannot be stopped from another thread
 \end{lstlisting}
 \end{adjustbox}
+\vspace{\baselineskip}
+
+\newpage
+\subsection{Pruebas de rendimiento y red}
+
+Una vez vista una ejecución estándar de cada uno de los módulos, se procederá a simular distintas condiciones reales de red utilizando la herramienta ``tc''\footnote{Para más informacion sobre el comando, visitar: https://man7.org/linux/man-pages/man8/tc.8.html} de Linux. Se analizará el comportamiento de \textit{InterCom} bajo diferentes condiciones de ancho de banda, retardo y pérdida de paquetes. Finalmente, se extraerán las conclusiones sobre dicho comportamiento del programa, así como, la robustez y limitaciones del sistema.
+\vspace{\baselineskip}
+
+A continuación, se comentan los distintos tipos de pruebas que se van realizar en cada subsección de este punto de la memoria:
+\begin{itemize}
+    \item \textbf{Pruebas de ancho de banda limitado}: Se simulará un ancho de banda limitado para comprobar el rendimiento del sistema bajo condiciones de red restringidas. Se probarán los siguientes anchos de banda:
+    \begin{itemize}
+        \item Ancho de banda muy bajo: 1 Mbps (prueba de una situación casi irreal).
+        \item Ancho de banda bajo: 10 Mbps (situación común en redes WiFi).
+        \item Ancho de banda medio (referencia): 50 Mbps o más (situación común en redes de fibra óptica, suficiente para la correcta ejecución del programa).
+    \end{itemize}
+    \item \textbf{Pruebas de retardo (Delay)} : Se simula cierta distancia física, mala calidad de red, o saturación del router. Se probarán los siguientes retardos:
+    \begin{itemize}
+        \item Sin retardo: 0 ms (ideal, red local).
+        \item Retardo medio: 100 ms (red común, ADSL, fibra, etc.).
+        \item Retardo alto: 250 ms o más (red muy saturada, mala calidad de red).
+    \end{itemize}
+    \item \textbf{Pruebas de pérdida de paquetes}: Se simulará la pérdida de paquetes en la red, lo que puede ocurrir en redes saturadas o de mala calidad. Se probarán los siguientes niveles de pérdida: 
+    \begin{itemize}
+        \item Pérdida baja: 5\% (red local, ideal).
+        \item Perdida alta: 25\% (red común, ADSL, fibra, etc.).
+        \item Pérdida muy alta: 50\% o más (red muy saturada, mala calidad de red).
+    \end{itemize}
+\end{itemize}
+
+\newpage
+
+\subsection{Resultados}
+Para la realización y configuración de las distintas situaciones de red, se utilizará el comando ``tc'' de Linux como ya se ha mencionado anteriormente. 
+\vspace{\baselineskip}
+
+Antes de nada, habrá que observar si hay alguna regla ya aplicada a la interfaz de red. La interfaz de red dependerá de con quien ejecutemos el programa, si lo ejecutamos en dos instancias de nuestro propio PC, bastará con usar la interfaz \textit{loopback}. En caso de estar ejecutando el programa junto con otro dispositivo de nuestra red, como es el caso de estas pruebas, habrá que mirar que interfaz de red saliente está utilizando el dispositivo. Para ello, se puede usar el comando ``ip addr'' para ver las interfaces de red disponibles y sus respectivas direcciones IP. 
+
+\vspace{\baselineskip}
+Entonces, una vez mirado la interfaz de red, que en mi caso es \textit{enp0s3}, se procederá a aplicar las reglas de red necesarias para simular las condiciones de red deseadas.
+
+\vspace{\baselineskip}
+
+Primero, habrá que mirar que no hay ninguna regla prestablecida en la interfaz de red. Para ello, se ejecutará el siguiente comando:
+\begin{lstlisting}[language=bash]
+sudo tc qdisc show dev enp0s3
+\end{lstlisting}
+Si no hay ninguna regla, el resultado será algo como así:
+\begin{lstlisting}[language=bash, breaklines=true]
+qdisc fq_codel 0: root refcnt 2 limit 10240p flows 1024 quantum 1514 target 5ms interval 100ms memory_limit 32Mb ecn drop_batch 64 
+\end{lstlisting}
+
+En caso de que hubiera ya alguna regla, se eliminaría con el siguiente comando:
+\begin{lstlisting}[language=bash]
+sudo tc qdisc del dev enp0s3 root
+\end{lstlisting}
+
+Ahora, ya se puede aplicar la regla de red deseada. Para ello, se utilizarán los siguientes comandos:
+
+\begin{itemize}
+    \item Para limitar el ancho de banda a X Mbps, donde X es el valor deseado:
+    \begin{lstlisting}[language=bash, breaklines=true]
+    sudo tc qdisc add dev enp0s3 root tbf rate Xmbit burst 1mbit latency 5000ms
+\end{lstlisting}
+    Donde el valor de \textit{burst} es el tamaño del paquete máximo que se puede enviar en un momento dado y el valor de \textit{latency} es el tiempo máximo que se puede esperar para enviar un paquete. En este caso, se ha puesto un valor de 1 Mbit y 5000 ms\footnote{El parámetro \texttt{latency 5000ms} define el tiempo máximo que un paquete puede estar en cola antes de ser descartado. Se usa un valor alto (5 segundos) para evitar que este timeout interfiera con las pruebas de limitación de ancho de banda, asegurando que solo se mida el efecto del parámetro \texttt{rate} que es el que nos interesa.} respectivamente, pero no alterarán el resultado de la prueba.
+    \item Para añadir un retardo de X ms, donde X es el valor deseado:
+    \begin{lstlisting}[language=bash]
+    sudo tc qdisc add dev enp0s3 root netem delay Xms
+\end{lstlisting}
+    \item Para añadir una pérdida de paquetes de X\%, donde X es el valor deseado:
+    \begin{lstlisting}[language=bash]
+    sudo tc qdisc add dev enp0s3 root netem loss X%
+\end{lstlisting}
+\end{itemize}
+
 
 \newpage
 
@@ -416,7 +432,7 @@ Donde ``-a'' es la dirección IP del dispositivo con el que se va a comunicar el
 
 \vspace{\baselineskip}
 \begin{itemize}
-    \item \textbf{Pruebas de Ancho de Banda Limitado}
+    \item \textbf{Pruebas de ancho de banda limitado}
 \end{itemize}
 
 Empezaremos por probar el programa con un ancho de banda muy bajo, 1 Mbps. El resultado obtenido ha sido el siguiente:
@@ -469,6 +485,7 @@ QObject::~QObject: Timers cannot be stopped from another thread
 
 \newpage
 Seguimos ahora estableciendo un ancho de banda bajo, 10 Mbps. El resultado obtenido ha sido el siguiente:
+
 \vspace{\baselineskip}
 \begin{adjustbox}{max width=\textwidth}
 \begin{lstlisting}[language=bash,basicstyle=\ttfamily\scriptsize]
@@ -592,7 +609,7 @@ QObject::~QObject: Timers cannot be stopped from another thread
 \newpage
 
 \begin{itemize}
-    \item \textbf{Pruebas de Retardo (Delay)}
+    \item \textbf{Pruebas de retardo (Delay)}
 \end{itemize}
 
 A continuación, se probará el programa sin retardo. El resultado obtenido ha sido el siguiente:
@@ -791,7 +808,7 @@ QObject::~QObject: Timers cannot be stopped from another thread
 \newpage
 
 \begin{itemize}
-    \item \textbf{Pruebas de Pérdida de Paquetes (Packet Loss)}
+    \item \textbf{Pruebas de pérdida de paquetes (Packet Loss)}
 \end{itemize}
 
 A continuación, se probará el programa con una pérdida de paquetes muy baja, del 5\%. El resultado obtenido ha sido el siguiente:
@@ -970,7 +987,7 @@ El comando usado para ejectuar este programa en este conjunto de pruebas ha sido
 Donde ``a'' es la dirección IP destino, ``show\_video'' es para que se active la transmisión de video, ``show\_stats'' es para que se muestre la información de estadísticas y ``z'' es el numero de fotogramas por segundo (FPS) que se desea enviar. En este caso, se ha configurado para mostrar el vídeo a 12 FPS.
 
 \begin{itemize}
-    \item \textbf{Pruebas de Ancho de Banda}
+    \item \textbf{Pruebas de ancho de banda}
 \end{itemize}
 
 A continuación, se probará el programa con un ancho de banda muy bajo, de 1 Mbps. El resultado obtenido ha sido el siguiente:
@@ -1167,7 +1184,7 @@ QObject::~QObject: Timers cannot be stopped from another thread
 \newpage
 
 \begin{itemize}
-    \item \textbf{Pruebas de Retardo (Delay)}
+    \item \textbf{Pruebas de retardo (Delay)}
 \end{itemize}
 
 Empezaremos probando el programa sin retardo, es decir, con un retardo de 0 ms. El resultado obtenido ha sido el siguiente:
@@ -1388,7 +1405,7 @@ QObject::~QObject: Timers cannot be stopped from another thread
 \vspace{\baselineskip}
 
 \begin{itemize}
-    \item \textbf{Pruebas de Perdida de Paquetes (Packet Loss)}
+    \item \textbf{Pruebas de pérdida de paquetes (Packet Loss)}
 \end{itemize}
 
 A continuación, se probará el programa con muy poca pérdida de paquetes, es decir, con un 5\% de pérdida. El resultado obtenido ha sido el siguiente:
@@ -1572,7 +1589,7 @@ Donde ``a'' indica la dirección IP destino, ``show\_video'' indica que se activ
 \vspace{\baselineskip}
 
 \begin{itemize}
-    \item \textbf{Pruebas de Ancho de Banda}
+    \item \textbf{Pruebas de ancho de banda}
 \end{itemize}
 
 Se comenzará probando el programa con un ancho de banda muy bajo de 1 Mbps. El resultado obtenido ha sido el siguiente:
@@ -1800,7 +1817,7 @@ QObject::~QObject: Timers cannot be stopped from another thread
 \newpage
 
 \begin{itemize}
-    \item \textbf{Pruebas de Retardo (Delay)}
+    \item \textbf{Pruebas de retardo (Delay)}
 \end{itemize}
 
 Empezaremos sin delay, es decir con un retardo de 0 ms. El resultado obtenido ha sido el siguiente:
@@ -2088,7 +2105,7 @@ QObject::~QObject: Timers cannot be stopped from another thread
 \newpage
 
 \begin{itemize}
-    \item \textbf{Pruebas de Pérdida de Paquetes (Packet Loss)}
+    \item \textbf{Pruebas de pérdida de paquetes (Packet Loss)}
 \end{itemize}
 
 A continuación, probaremos con una pérdida de paquetes mínima del 5\%. El resultado obtenido ha sido el siguiente:
@@ -2343,10 +2360,10 @@ Se analizarán los efectos de la limitación del ancho de banda, la latencia y l
 \vspace{\baselineskip}
 
 \begin{itemize}
-  \item \textbf{Prueba de Ancho de Banda de 1 Mbps:}
+  \item \textbf{Prueba de ancho de banda de 1 Mbps:}
 \end{itemize}
 
-Comenzaremos analizando el rendimiento de los tres módulos implementados en este trabajo \texttt{minimal\_video.py}, \texttt{minimal\_video\_fps.py} y \texttt{minimal\_video\_resolution.py} cuando la red se limita a un ancho de banda de 1 Mbps. Esta condición simula un entorno de red extremadamente malo.
+Comenzaremos analizando el rendimiento de los tres módulos implementados \texttt{minimal\_video.py}, \texttt{minimal\_video\_fps.py} y \texttt{minimal\_video\_resolution.py} cuando la red se limita a un ancho de banda de 1 Mbps. Esta condición simula un entorno de red extremadamente malo.
 
 \vspace{\baselineskip}
 
@@ -2434,7 +2451,7 @@ Las estadísticas globales son extremadamente pobres, se intentó enviar 1583.44
 
 \vspace{\baselineskip}
 
-Además, a continuación se muestra la eficiencia de FPS en los dos programas que se tratan los mimos, así como, el impacto en el rendimiento de reescalado se pueden observar en la siguiente tabla:
+Además, a continuación se muestra la eficiencia de FPS en minimal\_video\_fps y minimal\_video\_resolution en el siguiente gráfico:
 
 \begin{figure}[H]
 \centering
@@ -2469,36 +2486,39 @@ En general, estas pruebas demuestran que este ancho de banda es insuficiente par
 \newpage
 
 \begin{itemize}
-  \item \textbf{Prueba de Ancho de Banda de 10 Mbps:}
+  \item \textbf{Prueba de ancho de banda de 10 Mbps:}
 \end{itemize}
+
+En esta sección, se analiza el rendimiento de los módulos \texttt{minimal\_video.py}, \texttt{minimal\_video\_fps.py} y \texttt{minimal\_video\_resolution.py} cuando la red se encuentra limitada a un ancho de banda de 10 Mbps. Esta condición representa un entorno más realista respecto a la prueba previa, similar a una conexión doméstica estándar pero con una pobre conexión.
 \vspace{\baselineskip}
 
-Este análisis examina el comportamiento de los scripts \texttt{minimal\_video.py}, \texttt{minimal\_video\_fps.py} y \texttt{minimal\_video\_resolution.py} de \textit{InterCom} cuando la red se limita a un ancho de banda de 10 Mbps. Esta condición simula un entorno más realista que la prueba anterior, como podría ser una conexión ADSL estándar o una red WiFi con algo de congestión, donde se espera una funcionalidad básica pero con posibles restricciones.
-
+\textbf{- Análisis de \texttt{minimal\_video.py} con 10 Mbps:}
 \vspace{\baselineskip}
 
-\textbf{Análisis de \texttt{minimal\_video.py} con 10 Mbps:}
+El comportamiento de \texttt{minimal\_video.py} bajo el límite del ancho de banda de 10 Mbps mejora notablemente respecto a la prueba de 1 Mbps. Según las estadísticas globales, el módulo intentó enviar 5204 kbps de vídeo y 975 kbps de audio, logrando recibir 4777 kbps de vídeo y 925 kbps de audio. Esto indica que la mayor parte de los datos logra transmitirse correctamente, y la experiencia del usuario es considerablemente mejor: el vídeo y el audio son reconocibles y, en general, funciona.
+\vspace{\baselineskip}
 
-Al operar con un ancho de banda de 10 Mbps, el script \texttt{minimal\_video.py} muestra una mejora muy significativa en comparación con el escenario de 1 Mbps. Las estadísticas globales revelan que se intentó enviar aproximadamente 5204 kbps de vídeo y se recibieron 4777 kbps, mientras que para el audio se enviaron 975 kbps y se recibieron 925 kbps. Esto indica que una gran proporción de los datos, tanto de audio como de vídeo, logra llegar a su destino.
-
-Sin embargo, la presencia de múltiples mensajes de ``Socket bloqueado al enviar fragmento X'' es un indicador clave. Aunque la red de 10 Mbps permite el paso de una cantidad considerable de datos, el programa, en su configuración por defecto (probablemente intentando enviar vídeo a unos 30 FPS y con la calidad predeterminada), todavía genera picos de tráfico o un volumen de datos sostenido que excede la capacidad del enlace en ciertos momentos. Esto causa que el sistema operativo tenga que bloquear temporalmente el envío de nuevos paquetes hasta que la cola de red se descongestione. La experiencia del usuario sería notablemente superior a la de 1 Mbps, con vídeo y audio probablemente reconocibles, pero aún podría experimentar cortes, congelaciones o artefactos debido a esta congestión intermitente. El sistema es funcional, pero no opera de manera óptima ni fluida bajo esta tasa de envío.
+Sin embargo, la presencia constante de mensajes como ``Socket bloqueado al enviar fragmento X'' indica que el programa, sigue generando picos de tráfico o un flujo sostenido que en ocasiones excede la capacidad de la red. En ese momento, el socket bloquea temporalmente el envío de nuevos paquetes hasta aliviar la congestión en la cola de red. Esto produce cortes y congelaciones puntuales. El sistema funciona, pero la fluidez no es óptima y aún existen limitaciones claras para un uso completamente estable.
 
 \vspace{\baselineskip}
 
 \textbf{Análisis de \texttt{minimal\_video\_fps.py} con 10 Mbps:}
+\vspace{\baselineskip}
 
-Este script, que intenta fijar los fotogramas por segundo (FPS) del vídeo a 12 FPS, también se beneficia del aumento de ancho de banda a 10 Mbps. Los datos globales muestran 4853 kbps de vídeo enviados (4415 kbps recibidos) y 867 kbps de audio enviados (759 kbps recibidos). Estas cifras son comparables a las de \texttt{minimal\_video.py}, lo que es lógico ya que la principal diferencia es el intento de controlar la tasa de fotogramas.
+Al aumentar el ancho de banda a 10 Mbps, este módulo, que intenta fijar la tasa de FPS en 12, también se experimenta una mejora importante. Las estadísticas muestran que 4853 kbps de vídeo son enviados (4415 kbps recibidos) y 867 kbps de audio son enviados (759 kbps recibidos), datos muy similares al módulo anterior, lo que tiene sentido dado que la única diferencia es la gestión de la tasa de fotogramas.
+\vspace{\baselineskip}
 
-La sección crucial aquí es la de ``Estadisticas de FPS''. A pesar de tener un objetivo de 12 FPS, el promedio real alcanzado fue de solo 2.8 FPS, resultando en una eficiencia del 23.5\%. Esto demuestra claramente que, incluso con 10 Mbps disponibles, la red no es capaz de soportar el flujo de datos necesario para transmitir vídeo a 12 FPS con la resolución y calidad predeterminadas por la cámara. Los persistentes mensajes de ``Socket bloqueado'' confirman que la congestión sigue siendo un problema. El script intenta limitar los FPS, lo que podría reducir la carga total comparado con un envío sin control de FPS a la máxima capacidad de la cámara, pero la cantidad de datos por cada uno de esos (pocos) fotogramas sigue siendo demasiado alta para ser transmitida fluidamente a través de un enlace de 10 Mbps. La red sigue siendo el cuello de botella para alcanzar la tasa de fotogramas deseada.
+Sin embargo, la sección de ``Estadísticas de FPS'' revela que, pese a tener de objetivo 12 FPS, solo se logra un promedio real de 2.8 FPS (eficiencia del 23.5\%). Los mensajes de ``Socket bloqueado'' confirman que, aunque la red permite transmitir una cantidad mayor de datos, todavía es insuficiente para mantener de forma fluida la tasa objetivo con la calidad y resolución establecidas. El control de FPS reduce la carga media, pero los pocos fotogramas que se logran enviar siguen teniendo un tamaño demasiado grande para poder enviarse con un ancho de banda de 10 Mbps sin pérdidas o retrasos. La experiencia es aceptable, pero lejos de lo óptimo para vídeo en tiempo real.
 
 \vspace{\baselineskip}
-\newpage % For page break if needed
 
 \textbf{Análisis de \texttt{minimal\_video\_resolution.py} con 10 Mbps:}
+\vspace{\baselineskip}
 
-El script \texttt{minimal\_video\_resolution.py}, configurado para 12 FPS y una resolución objetivo de 350x250 (resultando en una real de 352x288 por la cámara), muestra un comportamiento similar a \texttt{minimal\_video\_fps.py} en cuanto a la transmisión efectiva. Se enviaron 5478 kbps de vídeo (5153 kbps recibidos) y 841 kbps de audio (recibidos íntegramente).
+En este caso, el módulo intenta transmitir vídeo a 12 FPS y una resolución objetivo de 350x250 píxeles (ajustando realmente a 352x288 que es la resolución compatible según la cámara). Los datos globales muestran que 5478 kbps de vídeo son enviados (5153 kbps recibidos) y 841 kbps de audio, este último son recibidos en su totalidad.
+\vspace{\baselineskip}
 
-Las ``Estadisticas de FPS'' son casi idénticas al script anterior: 2.8 FPS reales frente a un objetivo de 12 FPS (eficiencia del 23.4\%). Esto confirma que el factor limitante principal sigue siendo la capacidad de la red para transmitir los datos de vídeo, incluso con la resolución ajustada y el control de FPS. Es interesante observar las ``Estadisticas de Resolucion'': el tiempo promedio de reescalado es de 13.39 ms, con un impacto en el rendimiento (CPU) del 16.1\%. A diferencia del escenario de 1 Mbps donde este coste era irrelevante por la nula transmisión, aquí el reescalado consume una porción medible de los recursos del sistema. Aunque en el resumen de salida de esta prueba específica no se listan explícitamente mensajes de ``Socket bloqueado'', la bajísima eficiencia de FPS es una prueba contundente de que la red no puede manejar el volumen de datos de vídeo necesario para los 12 FPS objetivo, incluso con la resolución seleccionada. El sistema está transmitiendo lo que puede, pero está lejos de la fluidez deseada.
+Las ``Estadísticas de FPS'' son prácticamente idénticas al módulo anterior: 2.8 FPS reales frente al objetivo de 12 (eficiencia del 23.4\%). Esto confirma que la limitación principal sigue siendo la capacidad de la red. Además, el tiempo de reescalado promedio es de 13.39 ms, con un impacto en CPU del 16.1\%; a diferencia del escenario de 1 Mbps, aquí este consumo resulta importante. Aunque en la salida de este módulo no aparecen explícitamente los mensajes de ``Socket bloqueado'', la baja eficiencia de FPS evidencia que el enlace no puede manejar el volumen de datos necesario para los 12 FPS. El sistema transmite lo que puede, pero está lejos de lograr una experiencia fluida y estable.
 
 \vspace{\baselineskip}
 
@@ -2512,17 +2532,17 @@ Las ``Estadisticas de FPS'' son casi idénticas al script anterior: 2.8 FPS real
     ybar,
     enlargelimits=0.15,
     ylabel={\textbf{Kbps}},
-    title={\textbf{Comparación de rendimiento para Video (10 Mbps)}},
-    symbolic x coords={Video enviado, Video recibido},
+    title={\textbf{Comparación de rendimiento para Vídeo con limitación de 10 Mbps}},
+    symbolic x coords={Vídeo enviado, Vídeo recibido},
     xtick=data,
     nodes near coords,
     nodes near coords align={vertical},
     ymin=0,
     legend style={at={(0.5,-0.2)}, anchor=north, legend columns=3},
     ]
-\addplot[blue!30,fill=blue!30] coordinates {(Video enviado, 5204.09) (Video recibido, 4777.03)};
-\addplot[red!30,fill=red!30] coordinates {(Video enviado, 6568) (Video recibido, 6365)};
-\addplot[orange!30,fill=orange!30] coordinates {(Video enviado, 8370) (Video recibido, 7402)};
+\addplot[blue!30,fill=blue!30] coordinates {(Vídeo enviado, 5204.09) (Vídeo recibido, 4777.03)};
+\addplot[red!30,fill=red!30] coordinates {(Vídeo enviado, 6568) (Vídeo recibido, 6365)};
+\addplot[orange!30,fill=orange!30] coordinates {(Vídeo enviado, 8370) (Vídeo recibido, 7402)};
 \legend{minimal\_video.py, minimal\_video\_fps.py, minimal\_video\_resolution.py}
 \end{axis}
 \end{tikzpicture}
@@ -2537,7 +2557,7 @@ Las ``Estadisticas de FPS'' son casi idénticas al script anterior: 2.8 FPS real
     ybar,
     enlargelimits=0.15,
     ylabel={\textbf{Kbps}},
-    title={\textbf{Comparación de rendimiento para Audio (10 Mbps)}},
+    title={\textbf{Comparación de rendimiento para Audio con limitación de 10 Mbps}},
     symbolic x coords={Audio enviado, Audio recibido},
     xtick=data,
     nodes near coords,
@@ -2557,7 +2577,7 @@ Las ``Estadisticas de FPS'' son casi idénticas al script anterior: 2.8 FPS real
 
 \vspace{\baselineskip}
 
-Ademas la eficiencia de FPS y el impacto en el rendimiento de reescalado se pueden observar en la siguiente tabla:
+Además, a continuación se muestra la eficiencia de FPS en minimal\_video\_fps y minimal\_video\_resolution en el siguiente gráfico:
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}
@@ -2566,48 +2586,75 @@ Ademas la eficiencia de FPS y el impacto en el rendimiento de reescalado se pued
     height=6cm,
     xlabel={\textbf{Programa}},
     ylabel={\textbf{FPS}},
-    symbolic x coords={minimal\_video, minimal\_video\_fps, minimal\_video\_resolution},
+    symbolic x coords={minimal\_video\_fps, minimal\_video\_resolution},
     xtick=data,
     ymin=0, 
     ymax=15,
     ]
-\addplot[mark=*,blue] coordinates {(minimal\_video, 5) (minimal\_video\_fps, 5.8) (minimal\_video\_resolution, 3.5)};
-\addplot[red,sharp plot,dashed] coordinates {(minimal\_video, 12) (minimal\_video\_fps, 12) (minimal\_video\_resolution, 12)};
+\addplot[mark=*,blue] coordinates {(minimal\_video\_fps, 5.8) (minimal\_video\_resolution, 3.5)};
+\addplot[red,sharp plot,dashed] coordinates {(minimal\_video\_fps, 12) (minimal\_video\_resolution, 12)};
 \legend{FPS real promedio, FPS objetivo}
 \end{axis}
 \end{tikzpicture}
-\caption{Comparación de FPS entre los tres programas con limitación de 10 Mbps}
+\caption{Comparación de FPS entre los dos programas con limitación de 10 Mbps}
 \label{fig:comparacionfps_10mb}
 \end{figure}
 
-\textbf{Conclusiones Generales para 10 Mbps:}
+\textbf{Conclusiones para limitación 10 Mbps:}
 
-Operar con un ancho de banda de 10 Mbps representa una mejora sustancial frente a 1 Mbps, permitiendo una comunicación multimedia básica.
+La ejecución de los programas con un ancho de banda de 10 Mbps supone una mjoera considerable respecto a 1 Mbps, permitiendo una comunicación básica y, en la mayoría de los casos, funcional.
 \begin{itemize}
-    \item \textbf{Transmisión Parcialmente Exitosa:} Una cantidad significativa de datos de audio y vídeo logra ser transmitida y recibida, lo que permitiría una comunicación, aunque no de alta calidad.
-    \item \textbf{Congestión Persistente:} Los mensajes de ``Socket bloqueado'' (en los dos primeros scripts) y la muy baja eficiencia de FPS en los scripts que intentan controlar la tasa de fotogramas indican que 10 Mbps sigue siendo insuficiente para manejar el volumen de datos que los scripts intentan enviar para lograr una experiencia fluida, especialmente para vídeo a 12 FPS con la calidad y resolución por defecto o ajustada.
-    \item \textbf{Impacto de Funciones Avanzadas:} El control de FPS y el reescalado de resolución funcionan técnicamente, pero su efectividad se ve severamente limitada por el cuello de botella de la red. El coste de CPU del reescalado se vuelve observable.
-    \item \textbf{Comportamiento Esperado pero Limitado:} Es esperable que con 10 Mbps la transmisión sea mejor, pero también que surjan limitaciones si la calidad de vídeo es relativamente alta. El sistema es usable, pero no ideal para vídeo en tiempo real que requiera fluidez.
+    \item \textbf{Transmisión parcialmente exitosa:} La mayoría de los datos de audio y vídeo logran transmitirse, lo que permite una comunicación reconocible, aunque no de calidad óptima.
+    \item \textbf{Congestión persistente:} Los mensajes de ``Socket bloqueado'' y la baja eficiencia de FPS muestran que 10 Mbps sigue siendo insuficiente para soportar el volumen de datos necesario para una experiencia totalmente fluida, sobre todo en vídeo con 12 FPS.
+    \item \textbf{Impacto de funciones avanzadas:} El control de FPS y el reescalado de resolución funcionan técnicamente, pero su uso se ve limitado por el cuello de botella de la red; además, el coste de CPU del reescalado empieza a ser relativamente considerable.
+    \item \textbf{Comportamiento mejorado, pero limitado:} Aunque el sistema es usable y la transmisión mejora, aún no se logra una experiencia de videollamada fluida. Para conseguirlo, sería necesario un mayor ancho de banda.
 \end{itemize}
-Estos resultados sugieren que para una experiencia de videollamada fluida con \textit{InterCom} a 12 FPS o más, se necesitaría un ancho de banda superior a 10 Mbps, o bien, implementar mecanismos de compresión de vídeo más agresivos o una adaptación dinámica de la calidad mucho más sofisticada.
+
 
 \newpage
 
 \begin{itemize}
-  \item \textbf{Prueba de Ancho de Banda de 50 Mbps:}
+  \item \textbf{Prueba de ancho de banda de 50 Mbps:}
 \end{itemize}
 
-Tras analizar los resultados de las pruebas realizadas con una limitación de ancho de banda de 50 Mbps para los tres programas de intercom, se pueden extraer diversas conclusiones sobre su rendimiento y comportamiento.
+Continuamos nuestro análisis de los tres módulos \texttt{minimal\_video.py}, \texttt{minimal\_video\_fps.py} y \texttt{minimal\_video\_resolution.py} cuando la red se limita a un ancho de banda de 50 Mbps. Esta condición representa un entorno de conexión considerablemente mejor, similar a una conexión de fibra óptica doméstica básica o una buena conexión ADSL.
 
-Para el programa \texttt{minimal\_video.py}, observamos que con un ancho de banda de 50 Mbps logra mantener una transmisión estable tanto de audio como de video. Los datos muestran que el programa envía audio a una tasa de 1037.56 kbps y recibe a 965.31 kbps, mientras que para vídeo envía a 6967.88 kbps y recibe a 6358.18 kbps. Estas tasas son significativamente superiores a las conseguidas con limitaciones de 1 Mbps y 10 Mbps, lo que indica que el programa aprovecha mejor el ancho de banda disponible.
+\vspace{\baselineskip}
 
-En el caso de \texttt{minimal\_video\_fps.py}, el comportamiento es similar pero con una característica adicional: intenta mantener una tasa constante de fotogramas por segundo (en este caso, 12 FPS según el parámetro configurado). Los resultados muestran que con 50 Mbps logra mantener una tasa promedio de unos 10 FPS, lo que supone una eficiencia del 84\% respecto al objetivo. Esto es esperable, ya que aunque el ancho de banda es suficiente, existen limitaciones inherentes al procesamiento del video y al rendimiento del sistema que impiden alcanzar exactamente los FPS deseados.
+\textbf{- Análisis de \texttt{minimal\_video.py} con 50 Mbps:}
+\vspace{\baselineskip}
 
-Para \texttt{minimal\_video\_resolution.py}, que hereda las funcionalidades de los otros dos programas, se observa que mantiene tasas de transmisión de video significativamente más altas (alrededor de 45084 kbps) debido a la resolución configurada de 640x480. Esto es aproximadamente 6.5 veces más datos que el \texttt{minimal\_video.py} básico, lo cual es coherente con el aumento en la cantidad de píxeles procesados y transmitidos. Como consecuencia, también vemos que la eficiencia en FPS disminuye al 62\%, logrando sólo 7.5 FPS de los 12 FPS objetivo, lo que demuestra el compromiso entre calidad de imagen y fluidez.
+Al examinar el comportamiento de \texttt{minimal\_video.py} bajo esta condición, se observa una mejora drástica respecto a las pruebas anteriores. Las estadísticas globales muestran que el módulo intentó enviar 6967.88 kbps de vídeo y 1037.56 kbps de audio, logrando recibir 6358.18 kbps y 965.31 kbps respectivamente. Estos valores representan un porcentaje de recepción muy alto (más del 90\% de los datos enviados), lo que indica que se aprovecha el ancho de banda disponible.
+\vspace{\baselineskip}
+
+Al contrario que las pruebas anteriores, los mensajes de ``Socket bloqueado'' prácticamente desaparecen, lo que confirma que la red puede manejar adecuadamente el flujo de datos generado por el programa. La experiencia del usuario mejora notablemente: el vídeo se muestra fluido y el audio se escucha claro y continuo. Sin embargo, dado que el programa no implementa un control específico de FPS, la tasa de fotogramas puede variar según las condiciones del sistema, alcanzando aproximadamente unos 8 FPS en promedio.
+
+\vspace{\baselineskip}
+
+\textbf{Análisis de \texttt{minimal\_video\_fps.py} con 50 Mbps:}
+\vspace{\baselineskip}
+
+Este módulo, intenta obtener una tasa de fotogramas a 12 FPS, muestra un comportamiento interesante bajo esta condición de red. Los datos muestran un envío de 7226.78 kbps de vídeo (6363.69 kbps recibidos) y 905.71 kbps de audio (769.17 kbps recibidos). El porcentaje de recepción es bastante alto, aunque menor de lo que cabría esperar con un ancho de banda de 50 Mbps, lo que sugiere que podrían existir otros factores limitantes además de la red.
+\vspace{\baselineskip}
+
+La parte de ``Estadísticas de FPS'' revela un resultado menos óptimo de lo esperado: el programa alcanza aproximadamente 4.4 FPS reales frente al objetivo de 12 FPS, lo que representa una eficiencia del 37.0\%. Aunque esto supone una mejora respecto a las pruebas con anchos de banda más limitados, está lejos de ser ideal. Este rendimiento sugiere que, incluso con un ancho de banda suficiente, existen otras limitaciones (posiblemente relacionadas con el hardware, el procesamiento o la implementación del control de FPS) que impiden alcanzar la tasa objetivo. A pesar de esto, la experiencia del usuario sería notablemente mejor que en las pruebas con anchos de banda menores, con un vídeo más fluido y predecible.
+
+\vspace{\baselineskip}
+
+\textbf{Análisis de \texttt{minimal\_video\_resolution.py} con 50 Mbps:}
+\vspace{\baselineskip}
+
+Este módulo, que combina el control de FPS con una resolución configurada para 350x250, muestra un comportamiento interesante bajo las condiciones de 50 Mbps. Las estadísticas globales indican un envío de 8140.48 kbps de vídeo (7780.03 kbps recibidos) y 875.60 kbps de audio (833.37 kbps recibidos). El alto porcentaje de recepción confirma que el ancho de banda es suficiente para esta versión del programa.
+
+Las ``Estadísticas de FPS'' muestran que se logran 5.2 FPS reales de los 12 FPS objetivo (eficiencia del 43.4\%). Aunque inferior al rendimiento esperado, sigue siendo mejor que en pruebas con anchos de banda más limitados. El ``Tiempo de reescalado promedio'' es de 3.92 ms, con un impacto en el rendimiento (CPU) del 4.7\%. Este coste de procesamiento es relativamente bajo, lo que permite una experiencia de usuario equilibrada entre calidad de imagen y fluidez.
+
+La resolución real utilizada es 352x288 (la más cercana compatible con la cámara), lo que explica el volumen de datos enviados.
+
+\vspace{\baselineskip}
 
 \begin{figure}[H]
 \centering
-% Primera gráfica para Video
+% Primera gráfica para Video con 50 Mbps
 \begin{tikzpicture}
 \begin{axis}[
     width=12cm,
@@ -2615,24 +2662,24 @@ Para \texttt{minimal\_video\_resolution.py}, que hereda las funcionalidades de l
     ybar,
     enlargelimits=0.15,
     ylabel={\textbf{Kbps}},
-    title={\textbf{Comparación de rendimiento para Video}},
-    symbolic x coords={Video enviado, Video recibido},
+    title={\textbf{Comparación de rendimiento para Vídeo con limitación de 50 Mbps}},
+    symbolic x coords={Vídeo enviado, Vídeo recibido},
     xtick=data,
     nodes near coords,
     nodes near coords align={vertical},
     ymin=0,
     legend style={at={(0.5,-0.2)}, anchor=north, legend columns=3},
     ]
-\addplot[blue!30,fill=blue!30] coordinates {(Video enviado, 6967.88) (Video recibido, 6358.18)};
-\addplot[red!30,fill=red!30] coordinates {(Video enviado, 13934.39) (Video recibido, 13934.03)};
-\addplot[orange!30,fill=orange!30] coordinates {(Video enviado, 45084.90) (Video recibido, 45084.55)};
+\addplot[blue!30,fill=blue!30] coordinates {(Vídeo enviado, 6967.88) (Vídeo recibido, 6358.18)};
+\addplot[red!30,fill=red!30] coordinates {(Vídeo enviado, 7226.78) (Vídeo recibido, 6363.69)};
+\addplot[orange!30,fill=orange!30] coordinates {(Vídeo enviado, 8140.48) (Vídeo recibido, 7780.03)};
 \legend{minimal\_video.py, minimal\_video\_fps.py, minimal\_video\_resolution.py}
 \end{axis}
 \end{tikzpicture}
 
 \vspace{1cm} % Espacio entre gráficas
 
-% Segunda gráfica para Audio
+% Segunda gráfica para Audio con 50 Mbps
 \begin{tikzpicture}
 \begin{axis}[
     width=12cm,
@@ -2640,7 +2687,7 @@ Para \texttt{minimal\_video\_resolution.py}, que hereda las funcionalidades de l
     ybar,
     enlargelimits=0.15,
     ylabel={\textbf{Kbps}},
-    title={\textbf{Comparación de rendimiento para Audio}},
+    title={\textbf{Comparación de rendimiento para Audio con limitación de 50 Mbps}},
     symbolic x coords={Audio enviado, Audio recibido},
     xtick=data,
     nodes near coords,
@@ -2649,8 +2696,8 @@ Para \texttt{minimal\_video\_resolution.py}, que hereda las funcionalidades de l
     legend style={at={(0.5,-0.2)}, anchor=north, legend columns=3},
     ]
 \addplot[blue!30,fill=blue!30] coordinates {(Audio enviado, 1037.56) (Audio recibido, 965.31)};
-\addplot[red!30,fill=red!30] coordinates {(Audio enviado, 873.56) (Audio recibido, 873.56)};
-\addplot[orange!30,fill=orange!30] coordinates {(Audio enviado, 982.69) (Audio recibido, 982.69)};
+\addplot[red!30,fill=red!30] coordinates {(Audio enviado, 905.71) (Audio recibido, 769.17)};
+\addplot[orange!30,fill=orange!30] coordinates {(Audio enviado, 875.60) (Audio recibido, 833.37)};
 \legend{minimal\_video.py, minimal\_video\_fps.py, minimal\_video\_resolution.py}
 \end{axis}
 \end{tikzpicture}
@@ -2658,6 +2705,9 @@ Para \texttt{minimal\_video\_resolution.py}, que hereda las funcionalidades de l
 \label{fig:comparacion50mbps}
 \end{figure}
 
+\vspace{\baselineskip}
+
+Además, a continuación se muestra la eficiencia de FPS en minimal\_video\_fps y minimal\_video\_resolution en el siguiente gráfico:
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}
@@ -2666,45 +2716,76 @@ Para \texttt{minimal\_video\_resolution.py}, que hereda las funcionalidades de l
     height=6cm,
     xlabel={\textbf{Programa}},
     ylabel={\textbf{FPS}},
-    symbolic x coords={minimal\_video, minimal\_video\_fps, minimal\_video\_resolution},
+    symbolic x coords={minimal\_video\_fps, minimal\_video\_resolution},
     xtick=data,
-    ymin=0, ymax=15,
+    ymin=0, 
+    ymax=15,
     ]
-\addplot[mark=*,blue] coordinates {(minimal\_video, 8) (minimal\_video\_fps, 10.1) (minimal\_video\_resolution, 7.5)};
-\addplot[red,sharp plot,dashed] coordinates {(minimal\_video, 12) (minimal\_video\_fps, 12) (minimal\_video\_resolution, 12)};
+\addplot[mark=*,blue] coordinates {(minimal\_video\_fps, 4.4) (minimal\_video\_resolution, 5.2)};
+\addplot[red,sharp plot,dashed] coordinates {(minimal\_video\_fps, 12) (minimal\_video\_resolution, 12)};
 \legend{FPS real promedio, FPS objetivo}
 \end{axis}
 \end{tikzpicture}
-\caption{Comparación de FPS entre los tres programas}
-\label{fig:comparacionfps}
+\caption{Comparación de FPS entre los dos programas con limitación de 50 Mbps}
+\label{fig:comparacionfps_50mb}
 \end{figure}
 
-Es interesante observar cómo la jerarquía de herencia entre los programas se refleja en su rendimiento. El \texttt{minimal\_video.py} ofrece la funcionalidad básica de transmisión de audio y video, con un rendimiento equilibrado. El \texttt{minimal\_video\_fps.py}, al heredar de este, añade el control de FPS pero mantiene características similares de transmisión. Finalmente, el \texttt{minimal\_video\_resolution.py}, que hereda de \texttt{minimal\_video\_fps.py}, añade control de resolución pero a costa de un mayor consumo de ancho de banda y una menor eficiencia en FPS.
+\textbf{Conclusiones para limitación 50 Mbps:}
 
-El uso de CPU también es un factor importante a considerar. Con 50 Mbps, el programa base muestra un uso de CPU entre 30-45\%, mientras que las versiones más complejas llegan hasta 60-70\% en momentos de alta actividad. Esto es esperable debido al procesamiento adicional necesario para mantener FPS constantes y mayor resolución.
+La ejecución de los programas con un ancho de banda de 50 Mbps muestra un rendimiento significativamente superior, acercándose a una experiencia realmente buena.
+\begin{itemize}
+    \item \textbf{Transmisión altamente exitosa:} La gran mayoría de los datos enviados son recibidos correctamente, reduciendo notablemente los problemas de pérdida de paquetes y congestión observados en las pruebas anteriores.
+    \item \textbf{Ausencia de congestión:} Los mensajes de ``Socket bloqueado'' prácticamente desaparecen, indicando que la red puede manejar adecuadamente el flujo de datos generado por los programas.
+    \item \textbf{Eficacia moderada del control de FPS:} El módulo \texttt{minimal\_video\_fps.py} alcanza una eficiencia del 37.0\%, que aunque no es óptima, representa una mejora respecto a anchos de banda menores, sugiriendo que existen otros factores limitantes además de la red.
+    \item \textbf{Viabilidad del reescalado de resolución:} Con 50 Mbps, el reescalado a resoluciones como 352x288 se vuelve viable, con un impacto en CPU relativamente bajo (4.7\%) y un rendimiento de FPS similar al del módulo de control de fotogramas.
+    \item \textbf{Rendimiento comparable entre módulos:} Curiosamente, el módulo \texttt{minimal\_video\_resolution.py} logra una eficiencia de FPS (43.4\%) ligeramente superior a la del módulo \texttt{minimal\_video\_fps.py} (37.0\%), posiblemente debido a optimizaciones específicas o diferencias en la implementación.
+\end{itemize}
 
-En cuanto a la estabilidad, los tres programas muestran un comportamiento estable con 50 Mbps, sin los problemas de "Socket bloqueado" observados en las pruebas con 1 Mbps y 10 Mbps. Esto indica que 50 Mbps es un ancho de banda suficiente para evitar congestiones en la red para estos programas.
-
-En conclusión, la limitación de 50 Mbps permite un funcionamiento adecuado de los tres programas, mostrando las ventajas de cada uno según su diseño: el programa base ofrece un rendimiento equilibrado, el programa con control de FPS logra mantener una experiencia más fluida visualmente, y el programa con control de resolución ofrece una mejor calidad de imagen a costa de mayor consumo de recursos. La elección entre ellos dependerá de las prioridades del usuario: si se busca fluidez, el programa de FPS es la mejor opción; si se busca calidad de imagen, el programa de resolución es preferible, siempre que se disponga del ancho de banda necesario.
+Esta prueba demuestra que un ancho de banda de 50 Mbps es suficiente para una experiencia de videollamada de calidad, aunque persisten limitaciones que probablemente estén más relacionadas con el hardware y el procesamiento que con la capacidad de la red.
 
 \newpage
 
 \subsubsection{Pruebas con límite de latencia (Delay)}
 
 \begin{itemize}
-  \item \textbf{Prueba de Latencia de 0ms:}
+  \item \textbf{Prueba de latencia de 0ms:}
 \end{itemize}
 
-Continuando con nuestro análisis de las diferentes situaciones de red, ahora examinaremos el comportamiento de los tres programas en una situación ideal de latencia cero (0ms), lo que simula una comunicación en una red local sin retrasos significativos.
+Continuando con nuestro análisis de las diferentes condiciones de red, examinamos ahora el comportamiento de los tres módulos en una situación ideal de latencia cero (0ms), lo que simula una comunicación en una red local sin retrasos significativos.
 
-En el caso del programa \texttt{minimal\_video.py}, observamos que bajo condiciones de latencia cero, el sistema logra mantener una transmisión muy fluida. Los datos muestran que el programa envía audio a una tasa de 1155.34 kbps y recibe a 1013.26 kbps, mientras que para el vídeo envía a 7141.31 kbps y recibe a 6491.44 kbps. Es interesante notar que estas tasas son ligeramente superiores a las observadas con un ancho de banda medio de 50 Mbps, lo que indica que incluso con suficiente ancho de banda, un incremento en la latencia puede afectar negativamente el rendimiento.
+\vspace{\baselineskip}
 
-En las estadísticas podemos observar que el sistema logra mantener una tasa de transmisión de mensajes muy estable, con ciclos donde se envían y reciben entre 20-30 mensajes de audio y video respectivamente. El uso de CPU se mantiene en un rango moderado de 20-40%, lo que sugiere que el sistema no está sobrecargado y puede procesar eficientemente tanto el audio como el video.
+\textbf{- Análisis de \texttt{minimal\_video.py} con 0ms de latencia:}
+\vspace{\baselineskip}
 
-Para el programa \texttt{minimal\_video\_fps.py}, el comportamiento mejora notablemente respecto a las pruebas con limitaciones de ancho de banda. Al no tener latencia, la aplicación logra mantener casi la totalidad de los 12 FPS objetivo, alcanzando aproximadamente 11.2 FPS, lo que representa una eficiencia del 93%. Esto demuestra que la latencia es un factor crucial para el rendimiento de la aplicación, incluso más que el ancho de banda disponible cuando éste es suficiente.
+Al observar el comportamiento de \texttt{minimal\_video.py} bajo condiciones de latencia cero, se aprecia una transmisión estable y fluida. Las estadísticas globales muestran que el módulo envía audio a una tasa de 1155.34 kbps (recibiendo 1013.26 kbps) y vídeo a 7141.31 kbps (recibiendo 6491.44 kbps). Esto significa en un porcentaje de recepción aproximado del 88-91\%, indicando una transmisión eficiente con muy pocas pérdidas.
+\vspace{\baselineskip}
 
-El algoritmo de control de FPS funciona de manera muy eficiente en este escenario, adaptando dinámicamente el envío de fotogramas sin acumular retrasos significativos. Esto se refleja en una transmisión más fluida y constante, donde los ciclos de envío y recepción están extremadamente sincronizados, con apenas milisegundos de diferencia entre ellos.
+La ausencia de latencia permite que los ciclos de envío y recepción estén bien sincronizados, como se observa en las estadísticas por ciclo, donde se mantiene un flujo constante de mensajes (entre 20-30 mensajes de audio y vídeo por ciclo). El uso de CPU oscila entre un 20-40\% para el programa y 70-79\% para el sistema, lo que indica un procesamiento eficiente sin sobrecarga excesiva. La experiencia de usuario resultante es notablemente mejor que en escenarios con limitaciones de ancho de banda o latencia añadida.
 
+\vspace{\baselineskip}
+
+\textbf{Análisis de \texttt{minimal\_video\_fps.py} con 0ms de latencia:}
+\vspace{\baselineskip}
+
+Para este módulo, las estadísticas globales muestran una transmisión de audio de 1075.88 kbps (recibiendo 859.78 kbps) y de vídeo de 6748.03 kbps (recibiendo 6038.40 kbps). Estos valores representan un porcentaje de recepción del 80-89\%, ligeramente inferior al módulo base.
+\vspace{\baselineskip}
+
+Lo más relevante son las ``Estadísticas de FPS'', que muestran un promedio real de 3.9 FPS frente al objetivo de 12 FPS, resultando en una eficiencia del 32.5\%. Este dato es sorprendente, pues se espera un mejor rendimiento en condiciones ideales de latencia. Esto sugiere que existen otras limitaciones significativas más allá de la red, probablemente relacionadas con el procesamiento del vídeo o la implementación del control de FPS. Aunque el rendimiento está lejos del objetivo, sigue siendo mejor que en escenarios con restricciones de red más severas.
+
+\vspace{\baselineskip}
+
+\textbf{Análisis de \texttt{minimal\_video\_resolution.py} con 0ms de latencia:}
+\vspace{\baselineskip}
+
+Este módulo, combinando control de FPS y resolución reescalada a 352x288, muestra un comportamiento ligeramente superior al anterior bajo condiciones de latencia cero. Los datos globales indican una transmisión de audio de 1076.07 kbps (recibiendo 1039.14 kbps) y de vídeo de 8048.59 kbps (recibiendo 7602.30 kbps), con un porcentaje de recepción del 94-96\%, el más alto de los tres módulos.
+\vspace{\baselineskip}
+
+Las ``Estadísticas de FPS'' revelan un promedio de 4.5 FPS reales frente al objetivo de 12 FPS, alcanzando una eficiencia del 37.6\%. Si bien sigue estando por debajo del objetivo, supera ligeramente al módulo anterior. El ``Tiempo de reescalado promedio'' es de 5.11 ms, con un impacto en rendimiento del 6.1\%, valores razonables que limitantan el rendimiento.
+
+\vspace{\baselineskip}
+
+Además, a continuación se muestra la eficiencia de FPS en minimal\_video\_fps y minimal\_video\_resolution en el siguiente gráfico:
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}
@@ -2713,24 +2794,21 @@ El algoritmo de control de FPS funciona de manera muy eficiente en este escenari
     height=6cm,
     xlabel={\textbf{Programa}},
     ylabel={\textbf{FPS}},
-    symbolic x coords={minimal\_video, minimal\_video\_fps, minimal\_video\_resolution},
+    symbolic x coords={minimal\_video\_fps, minimal\_video\_resolution},
     xtick=data,
     ymin=0, 
     ymax=15,
     ]
-\addplot[mark=*,blue] coordinates {(minimal\_video, 9.2) (minimal\_video\_fps, 11.2) (minimal\_video\_resolution, 9.8)};
-\addplot[red,sharp plot,dashed] coordinates {(minimal\_video, 12) (minimal\_video\_fps, 12) (minimal\_video\_resolution, 12)};
+\addplot[mark=*,blue] coordinates {(minimal\_video\_fps, 3.9) (minimal\_video\_resolution, 4.5)};
+\addplot[red,sharp plot,dashed] coordinates {(minimal\_video\_fps, 12) (minimal\_video\_resolution, 12)};
 \legend{FPS real promedio, FPS objetivo}
 \end{axis}
 \end{tikzpicture}
-\caption{Comparación de FPS entre los tres programas con latencia de 0ms}
+\caption{Comparación de FPS entre los programas con latencia de 0ms}
 \label{fig:comparacionfps_0ms}
 \end{figure}
 
-En cuanto al programa \texttt{minimal\_video\_resolution.py}, también muestra un rendimiento notable bajo condiciones de latencia cero. A pesar del mayor volumen de datos transmitidos debido al control de resolución, logra mantener aproximadamente 9.8 FPS, lo que representa una eficiencia del 82%. Es relevante destacar que, aunque la aplicación envía significativamente más datos (alrededor de 45000 kbps para el video), la ausencia de latencia permite que estos datos lleguen rápidamente a su destino sin causar congestión en la red.
-
-El mejor rendimiento observado en condiciones de latencia cero nos permite establecer un "techo" para el rendimiento máximo posible de estos sistemas bajo condiciones ideales. La aplicación con control exclusivo de FPS (\texttt{minimal\_video\_fps.py}) se acerca mucho al objetivo deseado de 12 FPS, mientras que la versión que combina control de FPS y resolución sufre una pequeña degradación pero sigue ofreciendo un excelente rendimiento en comparación con las pruebas anteriores.
-
+También se muestran las tasas de transmisión y recepción de datos en los siguientes gráficos:
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}
@@ -2740,22 +2818,22 @@ El mejor rendimiento observado en condiciones de latencia cero nos permite estab
     ybar,
     enlargelimits=0.15,
     ylabel={\textbf{Kbps}},
-    title={\textbf{Comparación de rendimiento para Video (0ms latencia)}},
-    symbolic x coords={Video enviado, Video recibido},
+    title={\textbf{Comparación de rendimiento para Vídeo con latencia de 0ms}},
+    symbolic x coords={Vídeo enviado, Vídeo recibido},
     xtick=data,
     nodes near coords,
     nodes near coords align={vertical},
     ymin=0,
     legend style={at={(0.5,-0.2)}, anchor=north, legend columns=3},
     ]
-\addplot[blue!30,fill=blue!30] coordinates {(Video enviado, 7141.31) (Video recibido, 6491.44)};
-\addplot[red!30,fill=red!30] coordinates {(Video enviado, 14250.75) (Video recibido, 14250.30)};
-\addplot[orange!30,fill=orange!30] coordinates {(Video enviado, 48234.60) (Video recibido, 48234.15)};
+\addplot[blue!30,fill=blue!30] coordinates {(Vídeo enviado, 7141.31) (Vídeo recibido, 6491.44)};
+\addplot[red!30,fill=red!30] coordinates {(Vídeo enviado, 6748.03) (Vídeo recibido, 6038.40)};
+\addplot[orange!30,fill=orange!30] coordinates {(Vídeo enviado, 8048.59) (Vídeo recibido, 7602.30)};
 \legend{minimal\_video.py, minimal\_video\_fps.py, minimal\_video\_resolution.py}
 \end{axis}
 \end{tikzpicture}
 
-\vspace{1cm} % Espacio entre gráficas
+\vspace{0.8cm} % Espacio entre gráficas
 
 \begin{tikzpicture}
 \begin{axis}[
@@ -2764,7 +2842,7 @@ El mejor rendimiento observado en condiciones de latencia cero nos permite estab
     ybar,
     enlargelimits=0.15,
     ylabel={\textbf{Kbps}},
-    title={\textbf{Comparación de rendimiento para Audio (0ms latencia)}},
+    title={\textbf{Comparación de rendimiento para Audio con latencia de 0ms}},
     symbolic x coords={Audio enviado, Audio recibido},
     xtick=data,
     nodes near coords,
@@ -2773,8 +2851,8 @@ El mejor rendimiento observado en condiciones de latencia cero nos permite estab
     legend style={at={(0.5,-0.2)}, anchor=north, legend columns=3},
     ]
 \addplot[blue!30,fill=blue!30] coordinates {(Audio enviado, 1155.34) (Audio recibido, 1013.26)};
-\addplot[red!30,fill=red!30] coordinates {(Audio enviado, 1120.45) (Audio recibido, 1120.45)};
-\addplot[orange!30,fill=orange!30] coordinates {(Audio enviado, 1060.80) (Audio recibido, 1060.80)};
+\addplot[red!30,fill=red!30] coordinates {(Audio enviado, 1075.88) (Audio recibido, 859.78)};
+\addplot[orange!30,fill=orange!30] coordinates {(Audio enviado, 1076.07) (Audio recibido, 1039.14)};
 \legend{minimal\_video.py, minimal\_video\_fps.py, minimal\_video\_resolution.py}
 \end{axis}
 \end{tikzpicture}
@@ -2782,24 +2860,62 @@ El mejor rendimiento observado en condiciones de latencia cero nos permite estab
 \label{fig:comparacion0ms}
 \end{figure}
 
-También es destacable la sincronización entre audio y video que se logra en estas condiciones ideales. Mientras que en escenarios con limitaciones de ancho de banda o alta latencia podíamos observar desajustes entre la transmisión de audio y video, en este caso ambos flujos se mantienen perfectamente sincronizados, lo que garantiza una experiencia de usuario óptima.
+\textbf{Conclusiones para latencia 0ms:}
 
-En conclusión, el análisis con latencia cero demuestra la capacidad máxima de estos sistemas cuando funcionan en condiciones ideales de red. El programa base ofrece un rendimiento sólido, pero son las versiones optimizadas para FPS y resolución las que realmente brillan en este escenario, acercándose significativamente a los objetivos de diseño. Esto reafirma la importancia de minimizar la latencia en aplicaciones de comunicación en tiempo real, incluso cuando el ancho de banda disponible es abundante.
+Las pruebas con latencia cero muestran interesaantes resultados en los tres módulos:
+
+\begin{itemize}
+    \item \textbf{Transmisión:} Los tres módulos logran tasas de transmisión y recepción relativamente altas, con porcentajes de recepción entre el 80-96\%, siendo \texttt{minimal\_video\_resolution.py} el más eficiente en este aspecto.
+    
+    \item \textbf{Limitaciones:} Sorprendentemente, incluso en condiciones ideales de latencia, los módulos con control de FPS no logran acercarse a su objetivo de 12 FPS, alcanzando solo entre 3.9-4.5 FPS. Esto sugiere que las limitaciones se encuentran otros componentes del sistema (cámara, procesamiento, implementación del control de FPS).
+    
+    \item \textbf{Comparación en Rendimiento:} El módulo \texttt{minimal\_video\_resolution.py} muestra un rendimiento ligeramente superior en términos de FPS y porcentaje de recepción de datos, a pesar de transmitir un mayor volumen de información debido al reescalado de la resolución.
+
+  \end{itemize}
+
+Estas pruebas demuestran que, incluso en condiciones ideales de red, existen importantes limitaciones en el rendimiento que probablemente estén relacionadas con otras partes del sistema. Esto sugiere que futuras mejoras deberían enfocarse no solo en la optimización de la transmisión de red, sino también en la optimización del procesamiento del vídeo, la captura de la cámara y la implementación del control de los FPS.
 
 \newpage
 
 \begin{itemize}
-  \item \textbf{Prueba de Latencia de 100ms:}
+  \item \textbf{Prueba de latencia de 100ms:}
 \end{itemize}
 
-Continuando con nuestro estudio sobre el impacto de diferentes condiciones de red, ahora analizaremos el comportamiento de los tres programas bajo una latencia media de 100ms, que es representativa de una conexión típica a Internet con cierta distancia entre los extremos o con un nivel moderado de congestión.
+Seguimos analiazando diferentes condiciones de red, ahora examinaremos el comportamiento de los tres módulos bajo una latencia media de 100ms, que simula una conexión a Internet típica con cierta distancia entre los extremos o con un nivel moderado de congestión.
 
-Para el programa base \texttt{minimal\_video.py}, observamos un impacto considerable en comparación con el escenario de latencia cero. Los datos muestran que bajo una latencia de 100ms, el programa envía audio a una tasa de 1179.23 kbps pero recibe solo a 636.32 kbps, mientras que para vídeo envía a 8833.52 kbps y recibe a 6970.41 kbps. Esta disparidad entre envío y recepción, particularmente notable en el audio (donde se recibe solo el 54\% de lo enviado), indica que la latencia introduce un retraso significativo que afecta la sincronización de la comunicación.
+\vspace{\baselineskip}
 
-En las estadísticas de ciclo para \texttt{minimal\_video.py} podemos observar un patrón interesante: durante los primeros ciclos (1-7), prácticamente no se recibe ningún paquete, y luego comienza la recepción con valores fluctuantes. Esto refleja claramente el efecto del retraso de 100ms, que causa que los primeros paquetes enviados tarden varios ciclos en llegar al receptor. Este comportamiento genera una experiencia de usuario menos fluida, con momentos iniciales en blanco seguidos por ráfagas de datos.
+\textbf{- Análisis de \texttt{minimal\_video.py} con 100ms de latencia:}
+\vspace{\baselineskip}
 
-Para el programa \texttt{minimal\_video\_fps.py}, la latencia de 100ms compromete significativamente su capacidad para mantener una tasa constante de fotogramas. Los datos estimados indican que logra mantener aproximadamente 6.7 FPS, lo que representa una eficiencia del 56\% respecto al objetivo de 12 FPS. Este valor, aunque superior al observado con limitaciones severas de ancho de banda, sigue siendo insuficiente para una experiencia de videoconferencia óptima.
+Al observar el comportamiento de \texttt{minimal\_video.py} bajo una latencia de 100ms, se evidencia un impacto considerable en el rendimiento. Las estadísticas globales muestran que el módulo envía audio a 1179.23 kbps pero recibe solo 636.32 kbps (54\%), mientras que para vídeo envía 8833.52 kbps y recibe 6970.41 kbps (79\%). Esta diferencia entre envío y recepción, especialmente en el audio, indica que la latencia introduce un retraso significativo que afecta la sincronización de la comunicación.
+\vspace{\baselineskip}
 
+Un análisis detallado de los ciclos revela un patrón característico: durante los primeros 6-7 ciclos, prácticamente no se recibe ningún paquete, y luego comienza la recepción con valores fluctuantes. Este es el efecto directo del retraso de 100ms, que causa que los primeros paquetes enviados tarden varios ciclos en llegar al receptor. La consecuencia para el usuario es una experiencia menos fluida y desincronización notable entre audio y vídeo.
+
+\vspace{\baselineskip}
+
+\textbf{Análisis de \texttt{minimal\_video\_fps.py} con 100ms de latencia:}
+\vspace{\baselineskip}
+
+Para este módulo, que intenta mantener una tasa constante de 12 FPS, la latencia de 100ms tiene un impacto significativo. Las estadísticas globales muestran un envío de audio de 1168.50 kbps (recibiendo 706.70 kbps, 60\%) y de vídeo de 7978.58 kbps (recibiendo 6464.17 kbps, 81\%). Estos porcentajes de recepción, aunque no óptimos, son suficientes para mantener una comunicación aceptable.
+\vspace{\baselineskip}
+
+La sección de ``Estadísticas de FPS'' indica que el módulo consigue un promedio de 6.3 FPS reales frente al objetivo de 12 FPS, alcanzando una eficiencia del 52.6\%. Este valor, notablemente mejor que en escenarios con anchos de banda limitados, muestra que el control de FPS consigue adaptarse parcialmente a la latencia actual. El sistema parece ajustar el intervalo entre fotogramas para compensar el retraso, permitiendo una transmisión más sincornizada aunque a costa de una menor fluidez visual. Al igual que en el módulo anterior, se observa un retraso inicial en la recepción de paquetes, seguida por un patrón irregular donde ciclos consecutivos muestran algunas variaciones en la cantidad de datos recibidos.
+
+\vspace{\baselineskip}
+
+\textbf{Análisis de \texttt{minimal\_video\_resolution.py} con 100ms de latencia:}
+\vspace{\baselineskip}
+
+Este módulo, combinando control de FPS y resolución reescalada a 352x288, muestra un comportamiento interesante bajo condiciones de latencia de 100ms. Los datos globales indican una transmisión de audio de 1065.15 kbps (recibiendo 916.69 kbps, 86\%) y de vídeo de 10215.56 kbps (recibiendo 9153.09 kbps, 90\%), que son los mejores porcentajes de recepción entre los tres módulos.
+\vspace{\baselineskip}
+
+Sin embargo, las ``Estadísticas de FPS'' revelan un promedio de solo 4.2 FPS reales frente al objetivo de 12 FPS, con una eficiencia del 35.0\%. Esta contradicción (mejor tasa de recepción pero peor eficiencia de FPS) sugiere que el módulo prioriza la integridad de los datos enviados sobre la frecuencia de envío. Es decir, envía menos fotogramas pero se asegura de que lleguen completos. El ``Tiempo de reescalado promedio'' es de 5.37 ms, con un impacto en rendimiento del 6.4\%, valores similares a los observados en condiciones sin latencia, lo que indica que esta funcionalidad no se ve afectada por el retraso de la red.
+
+\vspace{\baselineskip}
+
+Además, a continuación se muestra la eficiencia de FPS en minimal\_video\_fps y minimal\_video\_resolution en el siguiente gráfico:
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}
@@ -2808,24 +2924,21 @@ Para el programa \texttt{minimal\_video\_fps.py}, la latencia de 100ms compromet
     height=6cm,
     xlabel={\textbf{Programa}},
     ylabel={\textbf{FPS}},
-    symbolic x coords={minimal\_video, minimal\_video\_fps, minimal\_video\_resolution},
+    symbolic x coords={minimal\_video\_fps, minimal\_video\_resolution},
     xtick=data,
     ymin=0, 
     ymax=15,
     ]
-\addplot[mark=*,blue] coordinates {(minimal\_video, 6.2) (minimal\_video\_fps, 6.7) (minimal\_video\_resolution, 4.3)};
-\addplot[red,sharp plot,dashed] coordinates {(minimal\_video, 12) (minimal\_video\_fps, 12) (minimal\_video\_resolution, 12)};
+\addplot[mark=*,blue] coordinates {(minimal\_video\_fps, 6.3) (minimal\_video\_resolution, 4.2)};
+\addplot[red,sharp plot,dashed] coordinates {(minimal\_video\_fps, 12) (minimal\_video\_resolution, 12)};
 \legend{FPS real promedio, FPS objetivo}
 \end{axis}
 \end{tikzpicture}
-\caption{Comparación de FPS entre los tres programas con latencia de 100ms}
+\caption{Comparación de FPS entre los dos programas con latencia de 100ms}
 \label{fig:comparacionfps_100ms}
 \end{figure}
 
-El algoritmo de control de FPS intenta adaptarse a esta latencia aumentando el intervalo entre fotogramas, lo que permite una transmisión más coherente pero a costa de una menor fluidez visual. Este comportamiento es especialmente notorio cuando se comparan los ciclos de transmisión: mientras que con latencia cero los ciclos son consistentes y predecibles, con 100ms de latencia se observan irregularidades significativas entre ciclos consecutivos.
-
-En el caso de \texttt{minimal\_video\_resolution.py}, el impacto es aún más pronunciado debido al mayor volumen de datos que necesita transmitir. Con una latencia de 100ms, este programa alcanza aproximadamente 4.3 FPS, lo que representa apenas un 36\% de eficiencia respecto al objetivo. La combinación de alta resolución y latencia media crea un cuello de botella que afecta severamente la fluidez de la comunicación.
-
+También se muestran las tasas de transmisión y recepción de datos en los siguientes gráficos:
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}
@@ -2835,22 +2948,22 @@ En el caso de \texttt{minimal\_video\_resolution.py}, el impacto es aún más pr
     ybar,
     enlargelimits=0.15,
     ylabel={\textbf{Kbps}},
-    title={\textbf{Comparación de rendimiento para Video (100ms latencia)}},
-    symbolic x coords={Video enviado, Video recibido},
+    title={\textbf{Comparación de rendimiento para Vídeo con latencia de 100ms}},
+    symbolic x coords={Vídeo enviado, Vídeo recibido},
     xtick=data,
     nodes near coords,
     nodes near coords align={vertical},
     ymin=0,
     legend style={at={(0.5,-0.2)}, anchor=north, legend columns=3},
     ]
-\addplot[blue!30,fill=blue!30] coordinates {(Video enviado, 8833.52) (Video recibido, 6970.41)};
-\addplot[red!30,fill=red!30] coordinates {(Video enviado, 9240.35) (Video recibido, 7120.68)};
-\addplot[orange!30,fill=orange!30] coordinates {(Video enviado, 24560.75) (Video recibido, 19650.40)};
+\addplot[blue!30,fill=blue!30] coordinates {(Vídeo enviado, 8833.52) (Vídeo recibido, 6970.41)};
+\addplot[red!30,fill=red!30] coordinates {(Vídeo enviado, 7978.58) (Vídeo recibido, 6464.17)};
+\addplot[orange!30,fill=orange!30] coordinates {(Vídeo enviado, 10215.56) (Vídeo recibido, 9153.09)};
 \legend{minimal\_video.py, minimal\_video\_fps.py, minimal\_video\_resolution.py}
 \end{axis}
 \end{tikzpicture}
 
-\vspace{1cm} % Espacio entre gráficas
+\vspace{0.5cm} % Espacio entre gráficas
 
 \begin{tikzpicture}
 \begin{axis}[
@@ -2859,7 +2972,7 @@ En el caso de \texttt{minimal\_video\_resolution.py}, el impacto es aún más pr
     ybar,
     enlargelimits=0.15,
     ylabel={\textbf{Kbps}},
-    title={\textbf{Comparación de rendimiento para Audio (100ms latencia)}},
+    title={\textbf{Comparación de rendimiento para Audio con latencia de 100ms}},
     symbolic x coords={Audio enviado, Audio recibido},
     xtick=data,
     nodes near coords,
@@ -2868,8 +2981,8 @@ En el caso de \texttt{minimal\_video\_resolution.py}, el impacto es aún más pr
     legend style={at={(0.5,-0.2)}, anchor=north, legend columns=3},
     ]
 \addplot[blue!30,fill=blue!30] coordinates {(Audio enviado, 1179.23) (Audio recibido, 636.32)};
-\addplot[red!30,fill=red!30] coordinates {(Audio enviado, 1165.45) (Audio recibido, 625.80)};
-\addplot[orange!30,fill=orange!30] coordinates {(Audio enviado, 1135.60) (Audio recibido, 615.30)};
+\addplot[red!30,fill=red!30] coordinates {(Audio enviado, 1168.50) (Audio recibido, 706.70)};
+\addplot[orange!30,fill=orange!30] coordinates {(Audio enviado, 1065.15) (Audio recibido, 916.69)};
 \legend{minimal\_video.py, minimal\_video\_fps.py, minimal\_video\_resolution.py}
 \end{axis}
 \end{tikzpicture}
@@ -2877,26 +2990,65 @@ En el caso de \texttt{minimal\_video\_resolution.py}, el impacto es aún más pr
 \label{fig:comparacion100ms}
 \end{figure}
 
-Un fenómeno particularmente interesante con la latencia de 100ms es la asimetría en el rendimiento del audio y video. Mientras que el audio mantiene una tasa de transmisión relativamente constante (aunque con pérdidas), el video muestra un comportamiento más errático, con ciclos donde la transmisión se interrumpe completamente seguidos por picos de alta actividad. Esto sugiere que el sistema prioriza la continuidad del audio sobre la del video cuando se enfrenta a limitaciones de latencia, lo cual es una estrategia razonable considerando que las interrupciones en el audio suelen ser más perturbadoras para la experiencia de usuario que los saltos en el video.
+\textbf{Conclusiones para latencia de 100ms:}
 
-Otro aspecto notable es el aumento en el uso de CPU observado con la latencia de 100ms. Los tres programas muestran incrementos entre 5-10% en el uso de CPU comparado con el escenario de latencia cero. Esto se debe a los esfuerzos adicionales de procesamiento necesarios para gestionar las colas de paquetes retrasados, los reintentos de transmisión y la reordenación de paquetes que llegan fuera de secuencia.
+La introducción de una latencia de 100ms muestra aspectos interesantes sobre el comportamiento de los tres módulos:
 
-En conclusión, una latencia de 100ms, aunque común en muchas conexiones a Internet, impone restricciones significativas en el rendimiento de los sistemas de videoconferencia. El programa base mantiene una transmisión aceptable pero con momentos de desincronización, mientras que las versiones optimizadas para FPS y resolución sufren degradaciones notables en sus métricas de rendimiento. Estos resultados subrayan la importancia de implementar mecanismos de adaptación a la latencia en aplicaciones de comunicación en tiempo real, especialmente aquellas que manejan contenido multimedia de alta resolución.
+\begin{itemize}
+    \item \textbf{Efecto del retardo inicial:} Los tres módulos comienzan de la misma forma, donde los primeros ciclos muestran poca o ninguna recepción, seguidos por un patrón irregular de transmisión que refleja directamente el impacto de la latencia.
+    
+    \item \textbf{Diferencia entre envío y recepción:} La latencia genera una diferencia significativa entre los datos enviados y recibidos, especialmente notable en el audio para \texttt{minimal\_video.py} (54\%) y \texttt{minimal\_video\_fps.py} (60\%).
+    
+    \item \textbf{Adaptación:} El módulo \texttt{minimal\_video\_fps.py} muestra la mejor eficiencia de FPS (52.6\%), indicando que logra adaptarse bien a la latencia introducida.
+    
+    \item \textbf{Prioridades diferentes:} El módulo \texttt{minimal\_video\_resolution.py} presenta los mejores porcentajes de recepción (86-90\%) pero la menor eficiencia de FPS (35.0\%), lo que indica que prioriza la integridad de los datos sobre la frecuencia de fotogramas.
+    
+    \item \textbf{Impacto asimétrico:} La latencia afecta de manera distinta al audio y al vídeo, con ciclos donde el audio se transmite correctamente mientras el vídeo sufre pérdidas significativas, o viceversa.
+\end{itemize}
+
+Estas conclusiones muestran que aunque una latencia de 100ms permite mantener una comunicación funcional, supone sin embargo, limitaciones notables en el rendimiento y lastra la fluidez visual, la calidad de audio y la sincronización entre ambos.
 
 \newpage
 
 \begin{itemize}
-  \item \textbf{Prueba de Latencia de 250ms:}
+  \item \textbf{Prueba de latencia de 250ms:}
 \end{itemize}
 
-Continuamos nuestro análisis examinando el comportamiento de los tres programas bajo una condición de latencia alta de 250ms, que representa una situación de red congestionada o una conexión a través de grandes distancias, como podría ser una comunicación intercontinental o una red satelital.
+Finalmente para terminar con las pruebas de latencia, examinamos el comportamiento de los tres módulos bajo una condición de latencia alta de 250ms, que representa una situación de red congestionada o una conexión entre grandes distancias, como podría ser una comunicación intercontinental o una red satelital.
 
-En el caso del programa base \texttt{minimal\_video.py}, observamos un impacto severo sobre la calidad de la comunicación. Los datos muestran que bajo esta latencia elevada, el programa envía audio a 1044.97 kbps pero recibe solo 824.80 kbps (una pérdida del 21\%), mientras que para vídeo envía a 9296.39 kbps y recibe a 7781.52 kbps (una pérdida del 16\%). Aunque estos valores son superiores a los observados con restricciones extremas de ancho de banda, la alta latencia introduce problemas significativos de sincronización y fluidez.
+\vspace{\baselineskip}
 
-Un análisis detallado de los ciclos revela un comportamiento errático en la recepción de paquetes. Observamos que inicialmente hay ciclos completos sin recepción de datos, seguidos por ciclos con recepción parcial y luego estabilizándose gradualmente. Este patrón es típico de sistemas bajo alta latencia, donde los primeros paquetes tardan significativamente en llegar y luego se produce un efecto de "acordeón" en el que los paquetes llegan en grupos irregulares.
+\textbf{- Análisis de \texttt{minimal\_video.py} con 250ms de latencia:}
+\vspace{\baselineskip}
 
-Para el programa \texttt{minimal\_video\_fps.py}, la latencia de 250ms reduce drásticamente su capacidad para mantener una tasa de fotogramas constante. Los datos estimados indican que apenas logra alcanzar 4.2 FPS, lo que representa solo un 35\% de eficiencia respecto al objetivo de 12 FPS. Es notable que el algoritmo de control de FPS, aunque intenta adaptarse reduciendo la frecuencia de envío de fotogramas, no puede compensar plenamente una latencia tan elevada.
+Al analizar el comportamiento de \texttt{minimal\_video.py} bajo esta latencia tan elevada, observamos un impacto considerable. Las estadísticas globales muestran que el módulo envía audio a 1044.97 kbps (recibiendo 824.80 kbps, 79\%) y vídeo a 9296.39 kbps (recibiendo 7781.52 kbps, 84\%). Estos porcentajes de recepción, aunque inferiores a los escenarios con menor latencia, siguen permitiendo una comunicación básica.
+\vspace{\baselineskip}
 
+El análisis de los ciclos muestra que inicialmente hay ciclos completos sin recepción de datos, seguidos por ciclos donde se recibe parcialmente y luego se estabiliza. Concretamente en los ciclos 2-7, observamos una recepción muy irregular, que afecta directamente la experiencia del usuario con pausas y cortes. Además, se aprecia que la imagen y el sonido van a tirones, con momentos de congelación.
+
+\vspace{\baselineskip}
+
+\textbf{Análisis de \texttt{minimal\_video\_fps.py} con 250ms de latencia:}
+\vspace{\baselineskip}
+
+Este módulo muestra una adaptación interesante a la latencia tan elevada. Las estadísticas globales indican una transmisión de audio de 1127.14 kbps (recibiendo 943.42 kbps, 84\%) y de vídeo de 10848.86 kbps (recibiendo 9626.26 kbps, 89\%). Estos porcentajes son notablemente mejores que para el módulo base, sugiriendo que el control de FPS ayuda a optimizar la transmisión incluso con alta latencia.
+\vspace{\baselineskip}
+
+Las ``Estadísticas de FPS'' revelan un dato sorprendentemente positivo. El módulo consigue mantener 7.2 FPS reales frente al objetivo de 12 FPS, alcanzando una eficiencia del 60.1\%. Esto significa que funciona mejor de lo esperado para una latencia tan alta. Ademas indica que el control de FPS consigue adaptarse satisfactoriamente reduciendo la frecuencia de envío de fotogramas para adaptarse a las limitaciones. Sin embargo, la visualización sigue siendo intermitente causando también congelaciones momentáneas en la visualización.
+
+\vspace{\baselineskip}
+
+\textbf{Análisis de \texttt{minimal\_video\_resolution.py} con 250ms de latencia:}
+\vspace{\baselineskip}
+
+Los resultados de este módulo bajo una latencia de 250ms son interesantes. Los datos globales muestran una transmisión de audio de 1079.08 kbps (recibiendo 818.01 kbps, 76\%) y de vídeo de 10215.45 kbps (recibiendo 8962.97 kbps, 88\%). Estos porcentajes de recepción son comparables a los del módulo anterior, indicando una buena gestión del flujo de datos a pesar de la resolución reescalada.
+\vspace{\baselineskip}
+
+Lo más sorprendente son las ``Estadísticas de FPS'', que revelan un promedio de 9.4 FPS reales frente al objetivo de 12 FPS, alcanzando una eficiencia del 78.0\%. Este resultado, el mejor de los tres módulos, sugiere que la combinación de control de FPS y resolución adaptada a 352x288, es especialmente efectiva para mitigar los efectos de la alta latencia. El ``Tiempo de reescalado promedio'' es de 6.09 ms, con un impacto en rendimiento del 7.3\%, valores ligeramente superiores a los observados en condiciones con menor latencia, pero aún dentro de un rango aceptable.
+
+\vspace{\baselineskip}
+
+Además, a continuación se muestra la eficiencia de FPS en minimal\_video\_fps y minimal\_video\_resolution en el siguiente gráfico:
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}
@@ -2905,24 +3057,21 @@ Para el programa \texttt{minimal\_video\_fps.py}, la latencia de 250ms reduce dr
     height=6cm,
     xlabel={\textbf{Programa}},
     ylabel={\textbf{FPS}},
-    symbolic x coords={minimal\_video, minimal\_video\_fps, minimal\_video\_resolution},
+    symbolic x coords={minimal\_video\_fps, minimal\_video\_resolution},
     xtick=data,
     ymin=0, 
     ymax=15,
     ]
-\addplot[mark=*,blue] coordinates {(minimal\_video, 3.8) (minimal\_video\_fps, 4.2) (minimal\_video\_resolution, 2.5)};
-\addplot[red,sharp plot,dashed] coordinates {(minimal\_video, 12) (minimal\_video\_fps, 12) (minimal\_video\_resolution, 12)};
+\addplot[mark=*,blue] coordinates {(minimal\_video\_fps, 7.2) (minimal\_video\_resolution, 9.4)};
+\addplot[red,sharp plot,dashed] coordinates {(minimal\_video\_fps, 12) (minimal\_video\_resolution, 12)};
 \legend{FPS real promedio, FPS objetivo}
 \end{axis}
 \end{tikzpicture}
-\caption{Comparación de FPS entre los tres programas con latencia de 250ms}
+\caption{Comparación de FPS entre los dos programas con latencia de 250ms}
 \label{fig:comparacionfps_250ms}
 \end{figure}
 
-El efecto más visible de esta latencia en \texttt{minimal\_video\_fps.py} es la intermitencia en la visualización. Aunque la aplicación intenta mantener una tasa constante de fotogramas, los largos retrasos en la transmisión provocan que algunos fotogramas lleguen agrupados mientras otros se pierden completamente, resultando en una experiencia visual entrecortada donde la imagen se congela momentáneamente y luego avanza rápidamente para ponerse al día.
-
-Para \texttt{minimal\_video\_resolution.py}, que combina el control de FPS con una resolución mayor, las limitaciones impuestas por una latencia de 250ms son aún más severas. Este programa apenas alcanza 2.5 FPS, lo que representa una eficiencia de solo el 21\% respecto al objetivo. La combinación de alta resolución (que implica más datos por fotograma) con la alta latencia crea una situación donde el sistema está constantemente luchando por transmitir grandes cantidades de datos a través de un canal con alto retraso.
-
+También se muestran las tasas de transmisión y recepción de datos en los siguientes gráficos:
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}
@@ -2932,22 +3081,22 @@ Para \texttt{minimal\_video\_resolution.py}, que combina el control de FPS con u
     ybar,
     enlargelimits=0.15,
     ylabel={\textbf{Kbps}},
-    title={\textbf{Comparación de rendimiento para Video (250ms latencia)}},
-    symbolic x coords={Video enviado, Video recibido},
+    title={\textbf{Comparación de rendimiento para Vídeo con latencia de 250ms}},
+    symbolic x coords={Vídeo enviado, Vídeo recibido},
     xtick=data,
     nodes near coords,
     nodes near coords align={vertical},
     ymin=0,
     legend style={at={(0.5,-0.2)}, anchor=north, legend columns=3},
     ]
-\addplot[blue!30,fill=blue!30] coordinates {(Video enviado, 9296.39) (Video recibido, 7781.52)};
-\addplot[red!30,fill=red!30] coordinates {(Video enviado, 7320.45) (Video recibido, 5850.35)};
-\addplot[orange!30,fill=orange!30] coordinates {(Video enviado, 19875.65) (Video recibido, 15325.40)};
+\addplot[blue!30,fill=blue!30] coordinates {(Vídeo enviado, 9296.39) (Vídeo recibido, 7781.52)};
+\addplot[red!30,fill=red!30] coordinates {(Vídeo enviado, 10848.86) (Vídeo recibido, 9626.26)};
+\addplot[orange!30,fill=orange!30] coordinates {(Vídeo enviado, 10215.45) (Vídeo recibido, 8962.97)};
 \legend{minimal\_video.py, minimal\_video\_fps.py, minimal\_video\_resolution.py}
 \end{axis}
 \end{tikzpicture}
 
-\vspace{1cm} % Espacio entre gráficas
+\vspace{0.5cm} % Espacio entre gráficas
 
 \begin{tikzpicture}
 \begin{axis}[
@@ -2956,7 +3105,7 @@ Para \texttt{minimal\_video\_resolution.py}, que combina el control de FPS con u
     ybar,
     enlargelimits=0.15,
     ylabel={\textbf{Kbps}},
-    title={\textbf{Comparación de rendimiento para Audio (250ms latencia)}},
+    title={\textbf{Comparación de rendimiento para Audio con latencia de 250ms}},
     symbolic x coords={Audio enviado, Audio recibido},
     xtick=data,
     nodes near coords,
@@ -2965,8 +3114,8 @@ Para \texttt{minimal\_video\_resolution.py}, que combina el control de FPS con u
     legend style={at={(0.5,-0.2)}, anchor=north, legend columns=3},
     ]
 \addplot[blue!30,fill=blue!30] coordinates {(Audio enviado, 1044.97) (Audio recibido, 824.80)};
-\addplot[red!30,fill=red!30] coordinates {(Audio enviado, 1025.60) (Audio recibido, 720.45)};
-\addplot[orange!30,fill=orange!30] coordinates {(Audio enviado, 985.35) (Audio recibido, 690.80)};
+\addplot[red!30,fill=red!30] coordinates {(Audio enviado, 1127.14) (Audio recibido, 943.42)};
+\addplot[orange!30,fill=orange!30] coordinates {(Audio enviado, 1079.08) (Audio recibido, 818.01)};
 \legend{minimal\_video.py, minimal\_video\_fps.py, minimal\_video\_resolution.py}
 \end{axis}
 \end{tikzpicture}
@@ -2974,13 +3123,23 @@ Para \texttt{minimal\_video\_resolution.py}, que combina el control de FPS con u
 \label{fig:comparacion250ms}
 \end{figure}
 
-Un fenómeno particularmente interesante con una latencia tan elevada es el comportamiento de "ráfaga" en la transmisión de vídeo. En los datos de \texttt{minimal\_video.py}, observamos ciclos con transmisión muy baja seguidos por ciclos con picos extremos de actividad. Por ejemplo, en los ciclos 6-7 vemos envíos de más de 1000 mensajes de vídeo, seguidos por ciclos con apenas 200-300 mensajes. Este comportamiento errático refleja cómo el sistema intenta compensar los retrasos acumulados enviando grandes cantidades de datos cuando detecta que la conexión está temporalmente disponible.
+\textbf{Conclusiones para latencia de 250ms:}
 
-La alta latencia también afecta la sincronización entre audio y vídeo. En los tres programas, observamos un desfase creciente entre estos dos flujos de datos, con el audio generalmente adelantándose al vídeo. Este comportamiento se debe a que los paquetes de audio, siendo más pequeños, tienen mayor probabilidad de llegar a su destino sin retraso adicional, mientras que los paquetes de vídeo más grandes pueden sufrir fragmentación o requieren más tiempo para ser transmitidos completamente.
+Una latencia de 250ms, muestra comportamientos interesantes y algunas sorpresas en el rendimiento de los tres módulos:
 
-El uso de CPU también se ve afectado, mostrando patrones más irregulares que en los escenarios anteriores. Se observan picos de hasta 75-80% de uso de CPU en momentos donde el sistema intenta compensar los efectos de la alta latencia, seguidos por períodos de baja utilización cuando la aplicación espera la confirmación de recepción de paquetes.
+\begin{itemize}
+    \item \textbf{Recepción parcial pero funcional:} Los tres módulos mantienen porcentajes de recepción relativamente buenos (76-89\%), permitiendo una comunicación básica aunque con ciertas interrupciones.
+    
+    \item \textbf{Eficiencia inesperada:} Contrario a lo que podría esperarse, el rendimiento en términos de FPS no se degrada catastróficamente. Especialmente en el caso de \texttt{minimal\_video\_resolution.py}, que alcanza una sorprendente eficiencia del 78\%.
+    
+    \item \textbf{Comportamiento:} El análisis por ciclos revela una visualización entrecortada y una desincronización entre audio y vídeo.
+    
+    \item \textbf{Mejor módulo:} En esta prueba, \texttt{minimal\_video\_resolution.py} demuestra ser la mejor opción, sugiriendo que la combinación de control de FPS y resolución reescalada es especialmente efectiva para mitigar los efectos de la alta latencia.
+    
+    \item \textbf{Adaptación progresiva:} Los tres módulos muestran una adaptación progresiva a la latencia, con una estabilización después de los primeros ciclos, lo que indica cierta capacidad de ajuste a las condiciones adversas.
+\end{itemize}
 
-En conclusión, una latencia de 250ms representa un desafío significativo para aplicaciones de videoconferencia en tiempo real. Los tres programas experimentan degradación severa en su rendimiento, con tasas de fotogramas muy por debajo de lo aceptable para una comunicación visual fluida. Aunque el audio mantiene cierta continuidad, la calidad general de la comunicación se ve comprometida. Estos resultados destacan la importancia crítica de minimizar la latencia en aplicaciones de comunicación multimedia, y sugieren que para entornos con latencia inherentemente alta, sería necesario implementar técnicas avanzadas de adaptación como codificación predictiva, transmisión escalable o ajuste dinámico de la calidad para mantener una experiencia de usuario aceptable.
+Estos resultados demuestran que los mecanismos del control de FPS y la resolución reescalable, pueden mitigar sustancialmente sus efectos negativos. Concretamente es interesante observar cómo el módulo más complejo (\texttt{minimal\_video\_resolution.py}) consigue el mejor rendimiento, a diferencia ade que ocurría en escenarios con limitaciones de ancho de banda.
 
 \newpage
 
@@ -2988,17 +3147,44 @@ En conclusión, una latencia de 250ms representa un desafío significativo para 
 \subsubsection{Pruebas con pérdida de paquetes}
 
 \begin{itemize}
-  \item \textbf{Prueba de Pérdida de Paquetes del 5\%:}
+  \item \textbf{Prueba de pérdida de paquetes del 5\%:}
 \end{itemize}
 
-Continuando con nuestro estudio sobre el impacto de diferentes condiciones de red, analizaremos ahora el comportamiento de los tres programas bajo una pérdida de paquetes del 5\%, que representa una situación de red con calidad moderada, como podría ser una conexión WiFi con cierta interferencia o una red compartida con tráfico variable.
+Continuaremos ahora analizando los tres módulos bajo una pérdida de paquetes del 5\%, que simula una situación de red con calidad moderada, como podría ser una conexión WiFi con interferencia o una red compartida con tráfico variable.
 
-Para el programa base \texttt{minimal\_video.py}, observamos que con una pérdida del 5\% de paquetes, el rendimiento se ve afectado pero de manera menos dramática que con limitaciones severas de ancho de banda o alta latencia. Los datos muestran que el programa envía audio a una tasa de 864.62 kbps y recibe 713.70 kbps (una pérdida del 17.5\%), mientras que para vídeo envía 5755.11 kbps y recibe 5360.76 kbps (una pérdida del 6.8\%). Esta diferencia entre las tasas de pérdida del audio y el vídeo sugiere que los paquetes de audio son más susceptibles a las pérdidas, posiblemente debido a su menor tamaño y mayor frecuencia de transmisión.
+\vspace{\baselineskip}
 
-En las estadísticas por ciclo, observamos un comportamiento interesante: los ciclos muestran una variabilidad relativamente baja en comparación con escenarios de alta latencia. Aunque hay cierta reducción en los mensajes recibidos respecto a los enviados, esta reducción es bastante consistente a lo largo del tiempo, lo que sugiere que la pérdida de paquetes del 5\% afecta de manera uniforme a la transmisión sin causar interrupciones prolongadas o comportamientos erráticos.
+\textbf{- Análisis de \texttt{minimal\_video.py} con 5\% de pérdida de paquetes:}
+\vspace{\baselineskip}
 
-Para el programa \texttt{minimal\_video\_fps.py}, la pérdida de paquetes del 5\% tiene un impacto moderado en su capacidad para mantener una tasa de fotogramas constante. Los datos estimados indican que logra mantener aproximadamente 8.5 FPS, lo que representa una eficiencia del 71\% respecto al objetivo de 12 FPS. Esto representa una degradación notable respecto al escenario ideal, pero sigue siendo significativamente mejor que los resultados obtenidos con limitaciones severas de ancho de banda o alta latencia.
+Al observar \texttt{minimal\_video.py} bajo una pérdida del 5\% de paquetes, notamos un impacto significativo pero no crítico en la transmisión. Las estadísticas globales muestran que el módulo envía audio a 864.62 kbps (recibiendo 713.70 kbps, 82.5\%) y vídeo a 5755.11 kbps (recibiendo 5360.76 kbps, 93.2\%). Esta diferencia entre las tasas de pérdida del audio (17.5\%) y el vídeo (6.8\%) sugiere que los paquetes de audio son más susceptibles a las pérdidas, posiblemente debido a su menor tamaño y mayor frecuencia de transmisión.
+\vspace{\baselineskip}
 
+El análisis por ciclos muestra que mientras algunos ciclos indican una recepción casi completa (como los ciclos 11 y 12), otros presentan pérdidas significativas (ciclos 2-4). Esta variabilidad es característica de la pérdida de paquetes, que afecta de manera aleatoria pero continua a la transmisión. La experiencia del usuario resulta en una comunicación fluida pero con ocasionales y pequeños cortes en el audio, especialmente notables al inicio de la conversación cuando el sistema aún no ha podido adaptarse a las condiciones de la red.
+
+\vspace{\baselineskip}
+
+\textbf{Análisis de \texttt{minimal\_video\_fps.py} con 5\% de pérdida de paquetes:}
+\vspace{\baselineskip}
+
+Este módulo muestra un comportamiento particular ante la pérdida de paquetes. Las estadísticas globales indican una transmisión de audio de 822.88 kbps (recibiendo 778.04 kbps, 94.6\%) y de vídeo de 5802.26 kbps (recibiendo 5294.70 kbps, 91.2\%). Sorprendentemente, el audio muestra una tasa de pérdida menor (5.4\%) que el vídeo (8.8\%), contrario a lo observado en el módulo base, lo que sugiere que el control de FPS puede estar priorizando la integridad del audio.
+\vspace{\baselineskip}
+
+Las ``Estadísticas de FPS'' muestran que el módulo logra solo 5.1 FPS reales frente al objetivo de 12 FPS, alcanzando una eficiencia del 42.8\%. Esta cifra indica que el control de FPS es particularmente sensible. El sistema detecta las pérdidas y responde reduciendo significativamente la tasa de fotogramas para intentar mantener la calidad de cada imagen transmitida, a costa de una menor fluidez visual.
+
+\vspace{\baselineskip}
+
+\textbf{Análisis de \texttt{minimal\_video\_resolution.py} con 5\% de pérdida de paquetes:}
+\vspace{\baselineskip}
+
+Los datos globales de este módulo en esta prueba muestran una transmisión de audio de 844.78 kbps (recibiendo 757.73 kbps, 89.7\%) y de vídeo de 6239.36 kbps (recibiendo 5842.37 kbps, 93.6\%). Estos porcentajes de recepción son relativamente buenos.
+\vspace{\baselineskip}
+
+Las ``Estadísticas de FPS'' indican de manera crítica que el módulo apenas alcanza 3.9 FPS reales frente al objetivo de 12 FPS, resultando en una eficiencia del 32.2\%, la más baja de los tres módulos. La combinación de mayor resolución (352x288) y pérdida de paquetes crea una situación donde cada paquete perdido tiene un impacto grande. El ``Tiempo de reescalado promedio`` es de 3.74 ms, con un impacto en rendimiento del 4.5\%, valores razonables que indican que la limitación principal no está en el procesamiento sino en la transmisión de red.
+
+\vspace{\baselineskip}
+
+Además, a continuación se muestra la eficiencia de FPS en minimal\_video\_fps y minimal\_video\_resolution en el siguiente gráfico:
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}
@@ -3007,24 +3193,21 @@ Para el programa \texttt{minimal\_video\_fps.py}, la pérdida de paquetes del 5\
     height=6cm,
     xlabel={\textbf{Programa}},
     ylabel={\textbf{FPS}},
-    symbolic x coords={minimal\_video, minimal\_video\_fps, minimal\_video\_resolution},
+    symbolic x coords={minimal\_video\_fps, minimal\_video\_resolution},
     xtick=data,
     ymin=0, 
     ymax=15,
     ]
-\addplot[mark=*,blue] coordinates {(minimal\_video, 7.8) (minimal\_video\_fps, 8.5) (minimal\_video\_resolution, 6.2)};
-\addplot[red,sharp plot,dashed] coordinates {(minimal\_video, 12) (minimal\_video\_fps, 12) (minimal\_video\_resolution, 12)};
+\addplot[mark=*,blue] coordinates {(minimal\_video\_fps, 5.1) (minimal\_video\_resolution, 3.9)};
+\addplot[red,sharp plot,dashed] coordinates {(minimal\_video\_fps, 12) (minimal\_video\_resolution, 12)};
 \legend{FPS real promedio, FPS objetivo}
 \end{axis}
 \end{tikzpicture}
-\caption{Comparación de FPS entre los tres programas con pérdida de paquetes del 5\%}
+\caption{Comparación de FPS entre los dos programas con pérdida de paquetes del 5\%}
 \label{fig:comparacionfps_5pct}
 \end{figure}
 
-El algoritmo de control de FPS muestra una adaptabilidad razonable ante la pérdida de paquetes. Observamos que tras detectar pérdidas, el sistema ajusta temporalmente la tasa de envío para permitir que los paquetes pendientes lleguen a su destino, y luego intenta recuperar la tasa objetivo. Esta estrategia resulta en una visualización con ocasionales microcongelaciones, pero que globalmente mantiene una fluidez aceptable para la mayoría de aplicaciones de videoconferencia.
-
-En el caso de \texttt{minimal\_video\_resolution.py}, que combina el control de FPS con una mayor resolución, la pérdida de paquetes del 5\% tiene un impacto más pronunciado. Este programa alcanza aproximadamente 6.2 FPS, lo que representa una eficiencia del 52\% respecto al objetivo. La mayor cantidad de datos por fotograma hace que cada paquete perdido tenga un impacto más significativo en la calidad visual, ya que puede afectar a áreas más grandes de la imagen o incluso hacer que fotogramas completos se descarten si faltan fragmentos críticos.
-
+También se muestran las tasas de transmisión y recepción de datos en los siguientes gráficos:
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}
@@ -3034,22 +3217,22 @@ En el caso de \texttt{minimal\_video\_resolution.py}, que combina el control de 
     ybar,
     enlargelimits=0.15,
     ylabel={\textbf{Kbps}},
-    title={\textbf{Comparación de rendimiento para Video (5\% pérdida de paquetes)}},
-    symbolic x coords={Video enviado, Video recibido},
+    title={\textbf{Comparación de rendimiento para Vídeo con pérdida de paquetes del 5\%}},
+    symbolic x coords={Vídeo enviado, Vídeo recibido},
     xtick=data,
     nodes near coords,
     nodes near coords align={vertical},
     ymin=0,
     legend style={at={(0.5,-0.2)}, anchor=north, legend columns=3},
     ]
-\addplot[blue!30,fill=blue!30] coordinates {(Video enviado, 5755.11) (Video recibido, 5360.76)};
-\addplot[red!30,fill=red!30] coordinates {(Video enviado, 11250.45) (Video recibido, 10550.35)};
-\addplot[orange!30,fill=orange!30] coordinates {(Video enviado, 35620.75) (Video recibido, 33125.40)};
+\addplot[blue!30,fill=blue!30] coordinates {(Vídeo enviado, 5755.11) (Vídeo recibido, 5360.76)};
+\addplot[red!30,fill=red!30] coordinates {(Vídeo enviado, 5802.26) (Vídeo recibido, 5294.70)};
+\addplot[orange!30,fill=orange!30] coordinates {(Vídeo enviado, 6239.36) (Vídeo recibido, 5842.37)};
 \legend{minimal\_video.py, minimal\_video\_fps.py, minimal\_video\_resolution.py}
 \end{axis}
 \end{tikzpicture}
 
-\vspace{1cm} % Espacio entre gráficas
+\vspace{0.5cm} % Espacio entre gráficas
 
 \begin{tikzpicture}
 \begin{axis}[
@@ -3058,7 +3241,7 @@ En el caso de \texttt{minimal\_video\_resolution.py}, que combina el control de 
     ybar,
     enlargelimits=0.15,
     ylabel={\textbf{Kbps}},
-    title={\textbf{Comparación de rendimiento para Audio (5\% pérdida de paquetes)}},
+    title={\textbf{Comparación de rendimiento para Audio con pérdida de paquetes del 5\%}},
     symbolic x coords={Audio enviado, Audio recibido},
     xtick=data,
     nodes near coords,
@@ -3067,8 +3250,8 @@ En el caso de \texttt{minimal\_video\_resolution.py}, que combina el control de 
     legend style={at={(0.5,-0.2)}, anchor=north, legend columns=3},
     ]
 \addplot[blue!30,fill=blue!30] coordinates {(Audio enviado, 864.62) (Audio recibido, 713.70)};
-\addplot[red!30,fill=red!30] coordinates {(Audio enviado, 945.80) (Audio recibido, 780.25)};
-\addplot[orange!30,fill=orange!30] coordinates {(Audio enviado, 915.45) (Audio recibido, 755.60)};
+\addplot[red!30,fill=red!30] coordinates {(Audio enviado, 822.88) (Audio recibido, 778.04)};
+\addplot[orange!30,fill=orange!30] coordinates {(Audio enviado, 844.78) (Audio recibido, 757.73)};
 \legend{minimal\_video.py, minimal\_video\_fps.py, minimal\_video\_resolution.py}
 \end{axis}
 \end{tikzpicture}
@@ -3076,28 +3259,60 @@ En el caso de \texttt{minimal\_video\_resolution.py}, que combina el control de 
 \label{fig:comparacion5pct}
 \end{figure}
 
-Un aspecto interesante de la pérdida de paquetes del 5\% es su efecto sobre la continuidad de la transmisión. A diferencia de la latencia, que causa retrasos pero eventualmente entrega la mayoría de los paquetes, la pérdida de paquetes implica que cierta información se pierde definitivamente. Esto se refleja en la calidad visual del vídeo, donde pueden aparecer artefactos como pixelación, bloques de color incorrecto o incluso fotogramas parciales si se pierden paquetes que contienen información crítica como los fotogramas clave de la codificación de vídeo.
+\textbf{Conclusiones para pérdida de paquetes del 5\%:}
 
-El comportamiento del audio bajo una pérdida de paquetes del 5\% también merece atención. En los tres programas, observamos pequeños cortes o chasquidos en la transmisión de audio, pero su continuidad global se mantiene mejor que la del vídeo. Esto se debe a que los sistemas de codificación de audio suelen implementar mecanismos de recuperación de pérdidas como la interpolación o la repetición de muestras, que son efectivos para pérdidas moderadas como esta.
+La prueba con una pérdida de paquetes moderada del 5\% muestra aspectos interesantes sobre los tres módulos:
 
-En cuanto al uso de CPU, observamos que es ligeramente superior al de un escenario ideal (aproximadamente un 5-10% más), lo que refleja el trabajo adicional que realizan los programas para gestionar las pérdidas, como la detección de paquetes faltantes, posibles reintentos de transmisión o técnicas de corrección de errores.
+\begin{itemize}
+    \item \textbf{Impacto en la recepción:} Los tres módulos muestran tasas de recepción bastante aceptables (entre 82.5\% y 94.6\%), con variaciones notables entre audio y vídeo que sugieren diferentes mecanismos de priorización.
+    
+    \item \textbf{Degradación significativa de FPS:} A pesar de las buenas tasas de recepción, la eficiencia de FPS se ve gravemente afectada en los tres módulos, especialmente en \texttt{minimal\_video\_resolution.py} con solo un 32.2\% de eficiencia.
+    
+    \item \textbf{Comportamiento irregular entre ciclos:} El análisis por ciclos muestra una variabilidad grande, con algunos períodos de transmisión casi perfecta y otros con pérdidas significativas, creando una experiencia de usuario inconsistente.
+    
+    \item \textbf{Aumento del uso de CPU:} Todos los módulos muestran picos elevados de uso de CPU (llegando al 85-95\% en algunos ciclos), reflejando el trabajo adicional necesario para gestionar las pérdidas y mantener la comunicación.
+\end{itemize}
 
-En conclusión, una pérdida de paquetes del 5\% representa una degradación moderada pero manejable para aplicaciones de videoconferencia. Los tres programas logran mantener una comunicación funcional, aunque con cierta reducción en la calidad visual y ocasionales artefactos. El programa con control de FPS muestra la mejor adaptación a estas condiciones, manteniendo una tasa de fotogramas razonable, mientras que la versión con mayor resolución sufre un impacto más notable debido a su mayor volumen de datos. Estos resultados sugieren que para entornos con pérdidas de paquetes moderadas, los algoritmos de adaptación dinámica de la calidad visual pueden ofrecer un buen compromiso entre resolución y fluidez.
+Estos resultados indican que incluso una pérdida de paquetes moderada del 5\% puede tener un impacto considerable en la calidad de la comunicación en tiempo real. Aunque no impide completamente la comunicación, afecta notablemente la fluidez visual y, en menor medida, la calidad del audio.
 
 \newpage
 
 \begin{itemize}
-  \item \textbf{Prueba de Pérdida de Paquetes del 25\%:}
+  \item \textbf{Prueba de pérdida de paquetes del 25\%:}
 \end{itemize}
 
-Ahora analizaremos el comportamiento de los tres programas bajo un escenario de pérdida de paquetes del 25\%, lo que representa una situación de red severamente degradada que podría ocurrir en conexiones inalámbricas con alta interferencia, redes muy congestionadas o en condiciones de conectividad extremadamente adversas.
+Ahora analizamos el comportamiento de los tres módulos bajo un escenario de pérdida de paquetes del 25\%, que representa una situación de red severamente degradada como podría ocurrir en conexiones inalámbricas con alta interferencia, redes muy congestionadas o condiciones de conectividad extremadamente adversas.
 
-Para el programa base \texttt{minimal\_video.py}, una pérdida de paquetes del 25\% tiene un impacto drástico en el rendimiento. Los datos muestran que el programa envía audio a una tasa de 1005.18 kbps pero recibe solo 359.70 kbps (una pérdida del 64\%), mientras que para vídeo envía 3357.26 kbps y recibe 2514.37 kbps (una pérdida del 25\%). Esta disparidad entre la tasa teórica de pérdida (25\%) y la pérdida real observada, especialmente en el audio, sugiere que el impacto va más allá de la simple pérdida de paquetes individuales, afectando a secuencias completas de comunicación.
+\vspace{\baselineskip}
 
-Analizando las estadísticas de ciclo, observamos un comportamiento extremadamente errático. Hay ciclos donde apenas se recibe un 10\% de los mensajes enviados, seguidos por otros donde la recepción es algo mejor pero aún muy degradada. Por ejemplo, en el ciclo 12 vemos que de 37 mensajes de audio enviados solo se recibieron 12, y de 430 mensajes de vídeo solo se recibieron 342. Esta inconsistencia en la recepción hace que la experiencia de usuario sea muy fragmentada, con constantes interrupciones tanto en audio como en video.
+\textbf{- Análisis de \texttt{minimal\_video.py} con 25\% de pérdida de paquetes:}
+\vspace{\baselineskip}
 
-Para el programa \texttt{minimal\_video\_fps.py}, la pérdida de paquetes del 25\% compromete severamente su capacidad para mantener una tasa de fotogramas constante. Los datos estimados indican que apenas logra mantener 3.2 FPS, lo que representa una eficiencia del 27\% respecto al objetivo de 12 FPS. En estas condiciones, el algoritmo de control de FPS intenta adaptarse reduciendo drásticamente la tasa de envío de fotogramas, priorizando la integridad de los fotogramas que sí logran transmitirse sobre la fluidez global.
+El impacto de una pérdida de paquetes del 25\% en \texttt{minimal\_video.py} es dramático. Las estadísticas globales revelan que el módulo envía audio a 1005.18 kbps pero recibe solo 359.70 kbps (64\% de pérdida), mientras que para vídeo envía 3357.26 kbps y recibe 2514.37 kbps (25\% de pérdida). La disparidad entre el porcentaje teórico de pérdida (25\%) y la pérdida real observada en el audio (64\%) sugiere un efecto cascada donde la pérdida de ciertos paquetes clave compromete secuencias enteras de comunicación.
 
+El análisis por ciclos muestra un comportamiento extremadamente errático. Por ejemplo, en el ciclo 12, de 37 mensajes de audio enviados solo se recibieron 12 (32\%), y en el ciclo 9, de 30 mensajes solo llegaron 5 (17\%). Esta inconsistencia provoca una experiencia fragmentada con constantes interrupciones tanto en el audio como en el vídeo. La comunicación se vuelve prácticamente ininteligible, con largos períodos de silencio y fotogramas congelados seguidos por actualizaciones breves y a menudo distorsionadas.
+
+\vspace{\baselineskip}
+
+\textbf{Análisis de \texttt{minimal\_video\_fps.py} con 25\% de pérdida de paquetes:}
+\vspace{\baselineskip}
+
+Este módulo sufre igualmente un impacto severo bajo una pérdida de paquetes tan elevada. Las estadísticas globales muestran una transmisión de audio de 1101.04 kbps (recibiendo 411.82 kbps, 63\% de pérdida) y de vídeo de 4089.65 kbps (recibiendo 3027.28 kbps, 26\% de pérdida). Estos porcentajes revelan nuevamente un impacto desproporcionado en el audio comparado con el vídeo.
+
+Las ``Estadísticas de FPS'' muestran un dato crítico: el módulo solo alcanza 2.9 FPS reales frente al objetivo de 12 FPS, resultando en una eficiencia del 23.8\%. Esta tasa de fotogramas es extremadamente baja para una comunicación visual efectiva. El algoritmo de control de FPS, al detectar las pérdidas masivas, reduce drásticamente la frecuencia de envío, priorizando la integridad de los pocos fotogramas que logran transmitirse sobre la fluidez global. El resultado es una experiencia visual severamente degradada, con actualizaciones de imagen tan esporádicas que dificultan la percepción de movimiento natural.
+
+\vspace{\baselineskip}
+
+\textbf{Análisis de \texttt{minimal\_video\_resolution.py} con 25\% de pérdida de paquetes:}
+\vspace{\baselineskip}
+
+Este módulo, que combina control de FPS con resolución adaptada, muestra el peor rendimiento bajo condiciones de pérdida del 25\%. Los datos globales indican una transmisión de audio de 1109.15 kbps (recibiendo 457.32 kbps, 59\% de pérdida) y de vídeo de 3820.40 kbps (recibiendo 2859.69 kbps, 25\% de pérdida).
+
+Las ``Estadísticas de FPS'' revelan un resultado crítico: apenas 1.8 FPS reales frente al objetivo de 12 FPS, con una eficiencia catastrófica del 15.3\%. En términos prácticos, esto significa aproximadamente una actualización de imagen cada 0.55 segundos, insuficiente para cualquier comunicación visual interactiva. El ``Tiempo de reescalado promedio`` aumenta a 7.67 ms, con un impacto en rendimiento del 9.2\%, valores superiores a los observados en condiciones menos adversas. Este aumento refleja la carga adicional que supone intentar procesar y reescalar fotogramas fragmentados o corruptos debido a la pérdida de paquetes.
+
+\vspace{\baselineskip}
+
+Además, a continuación se muestra la eficiencia de FPS en minimal\_video\_fps y minimal\_video\_resolution en el siguiente gráfico:
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}
@@ -3106,24 +3321,21 @@ Para el programa \texttt{minimal\_video\_fps.py}, la pérdida de paquetes del 25
     height=6cm,
     xlabel={\textbf{Programa}},
     ylabel={\textbf{FPS}},
-    symbolic x coords={minimal\_video, minimal\_video\_fps, minimal\_video\_resolution},
+    symbolic x coords={minimal\_video\_fps, minimal\_video\_resolution},
     xtick=data,
     ymin=0, 
     ymax=15,
     ]
-\addplot[mark=*,blue] coordinates {(minimal\_video, 2.9) (minimal\_video\_fps, 3.2) (minimal\_video\_resolution, 1.8)};
-\addplot[red,sharp plot,dashed] coordinates {(minimal\_video, 12) (minimal\_video\_fps, 12) (minimal\_video\_resolution, 12)};
+\addplot[mark=*,blue] coordinates {(minimal\_video\_fps, 2.9) (minimal\_video\_resolution, 1.8)};
+\addplot[red,sharp plot,dashed] coordinates {(minimal\_video\_fps, 12) (minimal\_video\_resolution, 12)};
 \legend{FPS real promedio, FPS objetivo}
 \end{axis}
 \end{tikzpicture}
-\caption{Comparación de FPS entre los tres programas con pérdida de paquetes del 25\%}
+\caption{Comparación de FPS entre los dos programas con pérdida de paquetes del 25\%}
 \label{fig:comparacionfps_25pct}
 \end{figure}
 
-La experiencia visual con esta tasa de pérdida es extremadamente pobre. Los fotogramas aparecen de manera muy intermitente, con largos períodos de congelación seguidos por actualizaciones breves y a menudo incompletas. En muchos casos, se observan artefactos visuales severos como bloques de color incorrecto, imágenes parciales o distorsiones significativas, ya que la pérdida de paquetes clave en la secuencia de codificación puede afectar a múltiples fotogramas subsecuentes.
-
-Para \texttt{minimal\_video\_resolution.py}, que maneja un mayor volumen de datos debido a su mayor resolución, la situación es aún peor. Este programa apenas alcanza 1.8 FPS, lo que representa una eficiencia del 15\% respecto al objetivo. En estas condiciones, la transmisión de video se vuelve prácticamente inutilizable para una comunicación en tiempo real, con fotogramas que aparecen de manera tan esporádica que resulta difícil mantener una conversación visual coherente.
-
+También se muestran las tasas de transmisión y recepción de datos en los siguientes gráficos:
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}
@@ -3133,22 +3345,22 @@ Para \texttt{minimal\_video\_resolution.py}, que maneja un mayor volumen de dato
     ybar,
     enlargelimits=0.15,
     ylabel={\textbf{Kbps}},
-    title={\textbf{Comparación de rendimiento para Video (25\% pérdida de paquetes)}},
-    symbolic x coords={Video enviado, Video recibido},
+    title={\textbf{Comparación de rendimiento para Vídeo con pérdida de paquetes del 25\%}},
+    symbolic x coords={Vídeo enviado, Vídeo recibido},
     xtick=data,
     nodes near coords,
     nodes near coords align={vertical},
     ymin=0,
     legend style={at={(0.5,-0.2)}, anchor=north, legend columns=3},
     ]
-\addplot[blue!30,fill=blue!30] coordinates {(Video enviado, 3357.26) (Video recibido, 2514.37)};
-\addplot[red!30,fill=red!30] coordinates {(Video enviado, 4974) (Video recibido, 3806)};
-\addplot[orange!30,fill=orange!30] coordinates {(Video enviado, 11550.75) (Video recibido, 8645.40)};
+\addplot[blue!30,fill=blue!30] coordinates {(Vídeo enviado, 3357.26) (Vídeo recibido, 2514.37)};
+\addplot[red!30,fill=red!30] coordinates {(Vídeo enviado, 4089.65) (Vídeo recibido, 3027.28)};
+\addplot[orange!30,fill=orange!30] coordinates {(Vídeo enviado, 3820.40) (Vídeo recibido, 2859.69)};
 \legend{minimal\_video.py, minimal\_video\_fps.py, minimal\_video\_resolution.py}
 \end{axis}
 \end{tikzpicture}
 
-\vspace{1cm} % Espacio entre gráficas
+\vspace{0.1cm} % Espacio entre gráficas
 
 \begin{tikzpicture}
 \begin{axis}[
@@ -3157,7 +3369,7 @@ Para \texttt{minimal\_video\_resolution.py}, que maneja un mayor volumen de dato
     ybar,
     enlargelimits=0.15,
     ylabel={\textbf{Kbps}},
-    title={\textbf{Comparación de rendimiento para Audio (25\% pérdida de paquetes)}},
+    title={\textbf{Comparación de rendimiento para Audio con pérdida de paquetes del 25\%}},
     symbolic x coords={Audio enviado, Audio recibido},
     xtick=data,
     nodes near coords,
@@ -3166,8 +3378,8 @@ Para \texttt{minimal\_video\_resolution.py}, que maneja un mayor volumen de dato
     legend style={at={(0.5,-0.2)}, anchor=north, legend columns=3},
     ]
 \addplot[blue!30,fill=blue!30] coordinates {(Audio enviado, 1005.18) (Audio recibido, 359.70)};
-\addplot[red!30,fill=red!30] coordinates {(Audio enviado, 1100.45) (Audio recibido, 455.35)};
-\addplot[orange!30,fill=orange!30] coordinates {(Audio enviado, 1022.60) (Audio recibido, 422.40)};
+\addplot[red!30,fill=red!30] coordinates {(Audio enviado, 1101.04) (Audio recibido, 411.82)};
+\addplot[orange!30,fill=orange!30] coordinates {(Audio enviado, 1109.15) (Audio recibido, 457.32)};
 \legend{minimal\_video.py, minimal\_video\_fps.py, minimal\_video\_resolution.py}
 \end{axis}
 \end{tikzpicture}
@@ -3175,30 +3387,64 @@ Para \texttt{minimal\_video\_resolution.py}, que maneja un mayor volumen de dato
 \label{fig:comparacion25pct}
 \end{figure}
 
-Un aspecto particularmente problemático con una pérdida de paquetes del 25\% es el efecto acumulativo que tiene sobre la comunicación. A diferencia de la latencia, que causa retrasos pero eventualmente permite la entrega de la mayoría de los datos, o de la limitación de ancho de banda, que reduce la calidad pero mantiene cierta continuidad, la pérdida de paquetes a este nivel afecta fundamentalmente la integridad de la comunicación. Cada paquete perdido puede contener información crítica que no será recuperada, y cuando esta pérdida alcanza el 25\%, hay momentos en que segmentos completos de la conversación simplemente desaparecen.
+\textbf{Conclusiones para pérdida de paquetes del 25\%:}
 
-La calidad del audio también se ve severamente comprometida. En los datos observamos que la recepción de mensajes de audio cae hasta un 36\% de lo enviado, lo que en la práctica se traduce en una conversación con constantes cortes, palabras incompletas y largos silencios. La naturaleza secuencial del audio hace que estas pérdidas sean especialmente perturbadoras, ya que incluso breves interrupciones pueden hacer ininteligible el discurso.
+Una pérdida de paquetes del 25\% representa un escenario catastrófico para aplicaciones de videoconferencia, revelando limitaciones fundamentales en los tres módulos:
 
-En términos de uso de CPU, observamos un fenómeno interesante: aunque los programas procesan menos datos debido a las pérdidas, el uso de CPU es más alto que en escenarios con mejor calidad de red (aproximadamente un 15-20% más). Esto se debe a los intentos constantes del sistema por detectar y gestionar las pérdidas, reorganizar los datos recibidos y aplicar técnicas de recuperación de errores, todo lo cual requiere un procesamiento adicional significativo.
+\begin{itemize}
+    \item \textbf{Pérdida desproporcionada en audio:} Los tres módulos muestran pérdidas de audio cercanas al 60\%, muy superiores al 25\% teórico, lo que sugiere un efecto multiplicador donde la pérdida de ciertos paquetes críticos compromete secuencias enteras de comunicación.
+    
+    \item \textbf{Tasas de FPS críticas:} Los valores de 1.8-2.9 FPS están muy por debajo del umbral mínimo para una comunicación visual fluida (generalmente considerado en torno a 10-15 FPS), haciendo que la videoconferencia sea prácticamente inviable.
+    
+    \item \textbf{Comportamiento errático:} El análisis por ciclos muestra variaciones extremas en la recepción, con momentos donde apenas llega el 10-15\% de los mensajes, creando una experiencia fragmentada e inconsistente.
+    
+    \item \textbf{Mayor consumo de recursos:} A pesar de procesar menos datos efectivos debido a las pérdidas, se observa un incremento en el uso de CPU, reflejando el esfuerzo adicional para detectar, gestionar y recuperarse de las pérdidas masivas.
+    
+    \item \textbf{Degradación proporcional a la complejidad:} El módulo más sofisticado (\texttt{minimal\_video\_resolution.py}) muestra el peor rendimiento (15.3\% de eficiencia), evidenciando que las características avanzadas son más vulnerables ante condiciones de red severas.
+\end{itemize}
 
-Un dato revelador es la reducción en el ancho de banda efectivo utilizado. Aunque teóricamente los programas intentan enviar a tasas similares a las observadas en otros escenarios, la pérdida masiva de paquetes hace que el sistema reduzca progresivamente sus intentos de transmisión. Por ejemplo, vemos que \texttt{minimal\_video.py} envía video a solo 3357.26 kbps, muy por debajo de los más de 7000 kbps observados en escenarios óptimos, lo que sugiere que el protocolo de comunicación está detectando las pérdidas y reduciendo proactivamente la tasa de envío para intentar mitigar el problema.
-
-En conclusión, una pérdida de paquetes del 25\% representa un escenario extremadamente adverso para aplicaciones de videoconferencia, donde la comunicación efectiva se ve comprometida hasta el punto de volverse prácticamente inviable para uso profesional. Los tres programas muestran degradaciones severas, con tasas de fotogramas muy por debajo de lo aceptable y calidad de audio deficiente. Estos resultados sugieren que en entornos con pérdidas de paquetes tan elevadas, sería necesario implementar técnicas avanzadas como codificación redundante, transmisión prioritaria de datos clave o incluso cambiar a modos de comunicación menos exigentes (como desactivar el video y centrarse solo en el audio) para mantener algún nivel de comunicación efectiva.
+Estos resultados demuestran que una pérdida de paquetes del 25\% sobrepasa ampliamente la capacidad de adaptación de los tres módulos, resultando en una comunicación que difícilmente puede considerarse funcional. En entornos con pérdidas tan elevadas, sería necesario implementar técnicas avanzadas como codificación redundante, transmisión prioritaria de datos críticos o incluso cambiar a modos menos exigentes (por ejemplo, desactivar el vídeo y mantener solo audio) para preservar algún nivel de comunicación efectiva.
 
 \newpage
 
 \begin{itemize}
-  \item \textbf{Prueba de Pérdida de Paquetes del 50\%:}
+  \item \textbf{Prueba de pérdida de paquetes del 50\%:}
 \end{itemize}
 
-Finalizamos nuestro estudio analizando el comportamiento de los tres programas bajo un escenario extremo de pérdida de paquetes del 50\%, que representa una situación de red crítica, prácticamente colapsada, como podría ocurrir en conexiones inalámbricas con interferencia severa o redes completamente saturadas.
+Finalizamos nuestro estudio analizando el comportamiento de los tres módulos bajo un escenario extremo de pérdida de paquetes del 50\%, que representa una situación de red crítica, prácticamente colapsada, como podría ocurrir en conexiones inalámbricas con interferencia severa o redes completamente saturadas.
 
-Para el programa base \texttt{minimal\_video.py}, una pérdida de paquetes del 50\% tiene un impacto devastador en la comunicación. Los datos revelan que el programa intenta enviar audio a una tasa de 965.73 kbps pero solo recibe 170.24 kbps (una pérdida del 82.4\%), mientras que para vídeo envía 2150.45 kbps y recibe apenas 1047.62 kbps (una pérdida del 51.3\%). Estos valores muestran que el impacto real supera incluso el porcentaje teórico de pérdida, debido a los efectos cascada que produce la pérdida masiva de paquetes en los protocolos de transmisión.
+\vspace{\baselineskip}
 
-El análisis de los ciclos de transmisión revela un escenario caótico. Existen numerosos ciclos donde no se recibe absolutamente ningún paquete, seguidos por otros donde llegan fragmentos dispersos de información. Por ejemplo, en el ciclo 15 observamos que de 42 mensajes de audio enviados solo llegaron 5, y de 280 mensajes de vídeo solo 135. Esta discontinuidad extrema hace que la comunicación sea esencialmente inviable, con largos períodos de silencio total intercalados con breves momentos donde llegan datos parciales y descontextualizados.
+\textbf{- Análisis de \texttt{minimal\_video.py} con 50\% de pérdida de paquetes:}
+\vspace{\baselineskip}
 
-Para el programa \texttt{minimal\_video\_fps.py}, la pérdida de paquetes del 50\% resulta en un colapso casi total de la funcionalidad de vídeo. Los datos estimados indican que apenas logra mantener 1.5 FPS, lo que representa una eficiencia catastrófica del 12.5\% respecto al objetivo de 12 FPS. En estas condiciones, el algoritmo de control de FPS entra en un modo de supervivencia, donde prácticamente abandona el intento de mantener una tasa constante y simplemente trata de enviar fotogramas completos cuando detecta alguna posibilidad de transmisión exitosa.
+El impacto de una pérdida de paquetes del 50\% en \texttt{minimal\_video.py} es devastador. Las estadísticas globales muestran que el módulo envía audio a 944.42 kbps pero recibe solo 136.63 kbps (una pérdida catastrófica del 85.5\%), mientras que para vídeo envía 2972.17 kbps y recibe apenas 1376.93 kbps (una pérdida del 53.7\%). Estos valores muestran que el rendimiento real es peor que el teorico ya que se pierden mas del 50\%, especialmente en el audio.
+\vspace{\baselineskip}
 
+Muchos ciclos no reciben ningun paquete, mientras que otros muestran una recepción mínima y fragmentada. Por ejemplo, en el ciclo 6 se enviaron 42 mensajes de audio pero se recibió solo 1, y en el ciclo 7, de 40 mensajes solo llegaron 5. Esto hace que la comunicación sea inviable, con largos períodos de silencio total intercalados con algunos datos que si llegan y no permiten mantener ningún tipo de conversación coherente.
+
+\vspace{\baselineskip}
+
+\textbf{Análisis de \texttt{minimal\_video\_fps.py} con 50\% de pérdida de paquetes:}
+\vspace{\baselineskip}
+
+Este módulo sufre un colapso casi total. Las estadísticas globales indican una transmisión de audio de 735.36 kbps (recibiendo solo 105.05 kbps, una pérdida del 85.7\%) y de vídeo de 2065.28 kbps (recibiendo 1063.56 kbps, una pérdida del 48.5\%).
+
+Las ``Estadísticas de FPS'' muestran que el módulo apenas alcanza 1.3 FPS reales frente al objetivo de 12 FPS, resultando en una eficiencia catastrófica del 10.7\%. En términos prácticos, esto significa aproximadamente una actualización de imagen cada 0.77 segundos, imposible para cualquier forma de comunicación. El control de FPS trata de mantener una tasa constante y simplemente envía fotogramas completos en muy pocos casos.
+
+\vspace{\baselineskip}
+
+\textbf{Análisis de \texttt{minimal\_video\_resolution.py} con 50\% de pérdida de paquetes:}
+\vspace{\baselineskip}
+
+Finalmente, este módulo muestra resultados igualmente catastróficos. Los datos globales revelan una transmisión de audio de 1074.12 kbps (recibiendo 143.22 kbps, una pérdida del 86.7\%) y de vídeo de 2493.55 kbps (recibiendo 1167.06 kbps, una pérdida del 53.2\%).
+\vspace{\baselineskip}
+
+Las ``Estadísticas de FPS'' muestran que el módulo apenas alcanza 1.3 FPS reales frente al objetivo de 12 FPS, con una eficiencia del 10.8\%, prácticamente idéntica a la del módulo anterior. Esto es sorprendente teniendo en cuenta que este módulo maneja una resolución mayor (352x288), lo que sugiere que ante pérdidas tan masivas, la limitación principal no es el volumen de datos sino la integridad de la transmisión misma. El ``Tiempo de reescalado promedio`` es de 3.74 ms, con un impacto en rendimiento del 4.5\%, valores que, aunque razonables, resultan irrelevantes cuando la comunicación resulta imposible debido a la pérdida tan grande de paquetes.
+
+\vspace{\baselineskip}
+
+Además, a continuación se muestra la eficiencia de FPS en minimal\_video\_fps y minimal\_video\_resolution en el siguiente gráfico:
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}
@@ -3207,24 +3453,21 @@ Para el programa \texttt{minimal\_video\_fps.py}, la pérdida de paquetes del 50
     height=6cm,
     xlabel={\textbf{Programa}},
     ylabel={\textbf{FPS}},
-    symbolic x coords={minimal\_video, minimal\_video\_fps, minimal\_video\_resolution},
+    symbolic x coords={minimal\_video\_fps, minimal\_video\_resolution},
     xtick=data,
     ymin=0, 
     ymax=15,
     ]
-\addplot[mark=*,blue] coordinates {(minimal\_video, 1.2) (minimal\_video\_fps, 1.5) (minimal\_video\_resolution, 0.7)};
-\addplot[red,sharp plot,dashed] coordinates {(minimal\_video, 12) (minimal\_video\_fps, 12) (minimal\_video\_resolution, 12)};
+\addplot[mark=*,blue] coordinates {(minimal\_video\_fps, 1.3) (minimal\_video\_resolution, 1.3)};
+\addplot[red,sharp plot,dashed] coordinates {(minimal\_video\_fps, 12) (minimal\_video\_resolution, 12)};
 \legend{FPS real promedio, FPS objetivo}
 \end{axis}
 \end{tikzpicture}
-\caption{Comparación de FPS entre los tres programas con pérdida de paquetes del 50\%}
+\caption{Comparación de FPS entre los dos programas con pérdida de paquetes del 50\%}
 \label{fig:comparacionfps_50pct}
 \end{figure}
 
-La experiencia visual en estas condiciones es prácticamente nula. Los fotogramas aparecen de forma tan esporádica y fragmentada que resulta imposible mantener cualquier tipo de comunicación visual coherente. Lo que se observa son imágenes estáticas que cambian abruptamente cada varios segundos, a menudo con severos artefactos visuales como bloques de color aleatorio, imágenes parciales y distorsiones masivas. En muchos casos, el sistema muestra el último fotograma recibido correctamente durante periodos prolongados, creando la impresión de que la transmisión se ha congelado por completo.
-
-Para \texttt{minimal\_video\_resolution.py}, con su mayor volumen de datos debido a la alta resolución, los resultados son catastróficos. Este programa apenas alcanza 0.7 FPS, lo que representa una eficiencia del 5.8\% respecto al objetivo. En la práctica, esto significa que aproximadamente cada 9-10 segundos aparece un único fotograma parcialmente corrupto, haciendo la comunicación visual completamente inútil para cualquier propósito práctico.
-
+También se muestran las tasas de transmisión y recepción de datos en los siguientes gráficos:
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}
@@ -3234,22 +3477,22 @@ Para \texttt{minimal\_video\_resolution.py}, con su mayor volumen de datos debid
     ybar,
     enlargelimits=0.15,
     ylabel={\textbf{Kbps}},
-    title={\textbf{Comparación de rendimiento para Video (50\% pérdida de paquetes)}},
-    symbolic x coords={Video enviado, Video recibido},
+    title={\textbf{Comparación de rendimiento para Vídeo con pérdida de paquetes del 50\%}},
+    symbolic x coords={Vídeo enviado, Vídeo recibido},
     xtick=data,
     nodes near coords,
     nodes near coords align={vertical},
     ymin=0,
     legend style={at={(0.5,-0.2)}, anchor=north, legend columns=3},
     ]
-\addplot[blue!30,fill=blue!30] coordinates {(Video enviado, 2150.45) (Video recibido, 1047.62)};
-\addplot[red!30,fill=red!30] coordinates {(Video enviado, 2280.30) (Video recibido, 1135.20)};
-\addplot[orange!30,fill=orange!30] coordinates {(Video enviado, 4150.75) (Video recibido, 2070.35)};
+\addplot[blue!30,fill=blue!30] coordinates {(Vídeo enviado, 2972.17) (Vídeo recibido, 1376.93)};
+\addplot[red!30,fill=red!30] coordinates {(Vídeo enviado, 2065.28) (Vídeo recibido, 1063.56)};
+\addplot[orange!30,fill=orange!30] coordinates {(Vídeo enviado, 2493.55) (Vídeo recibido, 1167.06)};
 \legend{minimal\_video.py, minimal\_video\_fps.py, minimal\_video\_resolution.py}
 \end{axis}
 \end{tikzpicture}
 
-\vspace{1cm} % Espacio entre gráficas
+\vspace{0.8cm} % Espacio entre gráficas
 
 \begin{tikzpicture}
 \begin{axis}[
@@ -3258,7 +3501,7 @@ Para \texttt{minimal\_video\_resolution.py}, con su mayor volumen de datos debid
     ybar,
     enlargelimits=0.15,
     ylabel={\textbf{Kbps}},
-    title={\textbf{Comparación de rendimiento para Audio (50\% pérdida de paquetes)}},
+    title={\textbf{Comparación de rendimiento para Audio con pérdida de paquetes del 50\%}},
     symbolic x coords={Audio enviado, Audio recibido},
     xtick=data,
     nodes near coords,
@@ -3266,9 +3509,9 @@ Para \texttt{minimal\_video\_resolution.py}, con su mayor volumen de datos debid
     ymin=0,
     legend style={at={(0.5,-0.2)}, anchor=north, legend columns=3},
     ]
-\addplot[blue!30,fill=blue!30] coordinates {(Audio enviado, 965.73) (Audio recibido, 170.24)};
-\addplot[red!30,fill=red!30] coordinates {(Audio enviado, 940.60) (Audio recibido, 182.35)};
-\addplot[orange!30,fill=orange!30] coordinates {(Audio enviado, 875.45) (Audio recibido, 165.80)};
+\addplot[blue!30,fill=blue!30] coordinates {(Audio enviado, 944.42) (Audio recibido, 136.63)};
+\addplot[red!30,fill=red!30] coordinates {(Audio enviado, 735.36) (Audio recibido, 105.05)};
+\addplot[orange!30,fill=orange!30] coordinates {(Audio enviado, 1074.12) (Audio recibido, 143.22)};
 \legend{minimal\_video.py, minimal\_video\_fps.py, minimal\_video\_resolution.py}
 \end{axis}
 \end{tikzpicture}
@@ -3276,12 +3519,19 @@ Para \texttt{minimal\_video\_resolution.py}, con su mayor volumen de datos debid
 \label{fig:comparacion50pct}
 \end{figure}
 
-La degradación del audio es igualmente severa. Con pérdidas efectivas de más del 80\% en los paquetes de audio, la comunicación sonora se reduce a fragmentos dispersos de palabras o sonidos, separados por largos períodos de silencio total. En este punto, la conversación se vuelve completamente ininteligible; pueden captarse palabras aisladas ocasionalmente, pero es imposible seguir el hilo de una conversación o comprender mensajes completos.
+\textbf{Conclusiones para pérdida de paquetes del 50\%:}
 
-Un fenómeno interesante es la reducción drástica en las tasas de envío observadas en los tres programas. Por ejemplo, vemos que \texttt{minimal\_video.py} envía video a solo 2150.45 kbps, menos de un tercio de lo observado en escenarios óptimos. Esto sugiere que los mecanismos de control de congestión han detectado las pérdidas masivas y han reducido la tasa de transmisión al mínimo posible, en un intento desesperado por mantener algún nivel de comunicación. Esta adaptación, aunque técnicamente correcta, es insuficiente para compensar un nivel tan extremo de pérdida de paquetes.
+Una pérdida de paquetes del 50\% representa un escenario critico y grave para la comunicación en tiempo real, haciendo que sea inviable la videoconferencia:
 
-El uso de CPU muestra un patrón errático, con largos períodos de baja actividad (15-20\%) cuando el sistema está esencialmente a la espera de confirmaciones que nunca llegan, alternando con breves picos de alta actividad (70-80\%) cuando intenta procesar y reorganizar los escasos paquetes que logran llegar a su destino.
+\begin{itemize}
+    \item \textbf{Pérdida catastrófica en audio:} Los tres módulos muestran pérdidas de audio muy serias: 85-87\% muy superiores al 50\% teórico, provocando que la comunicación sea prácticamente imposible, con apenas fragmentos aislados de sonido perceptibles.
+    
+    \item \textbf{FPS críticos:} Los valores de 1.0-1.3 FPS están muy por debajo del umbral mínimo para percibir movimiento fluido (generalmente considerado en torno a 10-12 FPS).
+    
+    \item \textbf{Reducción drástica de ancho de banda utilizado:} Los tres módulos envían datos a tasas muy inferiores a las observadas en escenarios mejores (2-3 Mbps frente a 7-10 Mbps), reflejando cómo los mecanismos de control de congestión detectan el colapso y reducen drásticamente las tasas de transmisión.
+    
+    \item \textbf{Uso errático de recursos:} El análisis muestra un patrón de uso de CPU extremadamente irregular, con períodos de bajo uso cuando el sistema espera, alternando con picos cuando intenta procesar los pocos paquetes que son recibidos.
 
-Un aspecto particularmente revelador es el comportamiento de los buffers internos. Los datos muestran que las colas de paquetes pendientes crecen constantemente hasta alcanzar sus límites, provocando que el sistema descarte paquetes antiguos antes de que puedan ser enviados. Este efecto "bola de nieve" explica por qué la pérdida efectiva de paquetes supera incluso el 50\% teórico, especialmente en el audio, donde los paquetes son más numerosos y pequeños.
+\end{itemize}
 
-En conclusión, una pérdida de paquetes del 50\% representa un escenario catastrófico donde la comunicación audiovisual en tiempo real es fundamentalmente imposible. Ninguno de los tres programas logra mantener un nivel mínimamente funcional de transmisión, con degradaciones tan severas que harían inviable incluso una conversación de emergencia. Estos resultados demuestran que hay umbrales críticos de calidad de red más allá de los cuales incluso los algoritmos más sofisticados de adaptación no pueden compensar las deficiencias. En tales condiciones extremas, la única estrategia viable sería cambiar a modos de comunicación extremadamente reducidos (como mensajes de texto) o intentar establecer la comunicación en otro momento cuando las condiciones de red mejoren.
+Estos resultados demuestran que una pérdida de paquetes del 50\% representa un umbral crítico más allá del cual la comunicación audiovisual en tiempo real es fundamentalmente imposible, independientemente de las técnicas empleadas.
